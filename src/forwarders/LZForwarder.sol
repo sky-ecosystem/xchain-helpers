@@ -60,7 +60,7 @@ library LZForwarder {
             payInLzToken: false
         });
 
-        MessagingFee memory fee = endpoint.quote(params, msg.sender);
+        MessagingFee memory fee = endpoint.quote(params, address(this));
 
         endpoint.send{ value: fee.nativeFee }(params, msg.sender);
     }
