@@ -50,7 +50,8 @@ library LZForwarder {
         bytes32              _receiver,
         ILayerZeroEndpointV2 endpoint,
         bytes         memory _message,
-        bytes         memory _options
+        bytes         memory _options,
+        address              _refundAddress
     ) internal {
         MessagingParams memory params = MessagingParams({
             dstEid:       _dstEid,
@@ -62,7 +63,7 @@ library LZForwarder {
 
         MessagingFee memory fee = endpoint.quote(params, msg.sender);
 
-        endpoint.send{ value: fee.nativeFee }(params, msg.sender);
+        endpoint.send{ value: fee.nativeFee }(params, _refundAddress);
     }
 
 }
