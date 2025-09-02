@@ -128,7 +128,8 @@ contract LZIntegrationTest is IntegrationBaseTest {
             bytes32(uint256(uint160(destinationReceiver))),
             ILayerZeroEndpointV2(bridge.sourceCrossChainMessenger),
             message,
-            options
+            options,
+            sourceAuthority
         );
     }
 
@@ -142,7 +143,8 @@ contract LZIntegrationTest is IntegrationBaseTest {
             bytes32(uint256(uint160(sourceReceiver))),
             ILayerZeroEndpointV2(bridge.destinationCrossChainMessenger),
             message,
-            options
+            options,
+            destinationAuthority
         );
     }
 
