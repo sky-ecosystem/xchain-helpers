@@ -26,6 +26,10 @@ contract LZReceiverTest is Test {
 
     uint32 srcEid = LZForwarder.ENDPOINT_ID_ETHEREUM;
 
+    error NoPeer(uint32 eid);
+    error OnlyEndpoint(address addr);
+    error OnlyPeer(uint32 eid, bytes32 sender);
+
     function setUp() public {
         vm.createSelectFork(getChain("bnb_smart_chain").rpcUrl);
 
@@ -39,9 +43,6 @@ contract LZReceiverTest is Test {
             delegate,
             owner
         );
-
-        vm.prank(owner);
-        receiver.setPeer(srcEid, bytes32(uint256(uint160(sourceAuthority))));
     }
 
     function test_constructor() public view {
@@ -49,6 +50,7 @@ contract LZReceiverTest is Test {
         assertEq(receiver.sourceAuthority(), bytes32(uint256(uint160(sourceAuthority))));
         assertEq(receiver.target(),          address(target));
         assertEq(receiver.owner(),           owner);
+        assertEq(receiver.peers(srcEid),     bytes32(uint256(uint160(sourceAuthority))));
 
         assertEq(
             ILayerZeroEndpointV2(address(receiver.endpoint())).delegates(address(receiver)),
@@ -56,7 +58,56 @@ contract LZReceiverTest is Test {
         );
     }
 
+    function test_invalidEndpoint() public {
+        vm.prank(randomAddress);
+        vm.expectRevert(abi.encodeWithSelector(OnlyEndpoint.selector, randomAddress));
+        receiver.lzReceive(
+            Origin({
+                srcEid: srcEid,
+                sender: bytes32(uint256(uint160(randomAddress))),
+                nonce:  1
+            }),
+            bytes32(0),
+            abi.encodeCall(TargetContractMock.increment, ()),
+            address(0),
+            ""
+        );
+    }
+
+    function test_lzReceive_revertsNoPeer() public {
+        vm.prank(destinationEndpoint);
+        vm.expectRevert(abi.encodeWithSelector(NoPeer.selector, 0));
+        receiver.lzReceive(
+            Origin({
+                srcEid: 0,
+                sender: bytes32(uint256(uint160(randomAddress))),
+                nonce:  1
+            }),
+            bytes32(0),
+            abi.encodeCall(TargetContractMock.increment, ()),
+            address(0),
+            ""
+        );
+    }
+
+    function test_lzReceive_revertsOnlyPeer() public {
+        vm.prank(destinationEndpoint);
+        vm.expectRevert(abi.encodeWithSelector(OnlyPeer.selector, srcEid, bytes32(uint256(uint160(randomAddress)))));
+        receiver.lzReceive(
+            Origin({
+                srcEid: srcEid,
+                sender: bytes32(uint256(uint160(randomAddress))),
+                nonce:  1
+            }),
+            bytes32(0),
+            abi.encodeCall(TargetContractMock.increment, ()),
+            address(0),
+            ""
+        );
+    }
+
     function test_lzReceive_invalidSrcEid() public {
+        // NOTE: To pass initial check, we set the peer.
         vm.prank(owner);
         receiver.setPeer(srcEid + 1, bytes32(uint256(uint160(sourceAuthority))));
 
@@ -76,6 +127,7 @@ contract LZReceiverTest is Test {
     }
 
     function test_lzReceive_invalidSourceAuthority() public {
+        // NOTE: To pass initial check, we set the peer.
         vm.prank(owner);
         receiver.setPeer(srcEid, bytes32(uint256(uint160(randomAddress))));
 

@@ -26,7 +26,11 @@ contract LZIntegrationTest is IntegrationBaseTest {
     Domain destination2;
     Bridge bridge2;
 
-    function test_invalidSender() public {
+    error NoPeer(uint32 eid);
+    error OnlyEndpoint(address addr);
+    error OnlyPeer(uint32 eid, bytes32 sender);
+
+    function test_invalidEndpoint() public {
         destinationEndpointId = LZForwarder.ENDPOINT_ID_BASE;
         destinationEndpoint   = LZForwarder.ENDPOINT_BASE;
         initBaseContracts(getChain("base").createFork());
@@ -34,11 +38,55 @@ contract LZIntegrationTest is IntegrationBaseTest {
         destination.selectFork();
 
         vm.prank(randomAddress);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(OnlyEndpoint.selector, randomAddress));
         LZReceiver(destinationReceiver).lzReceive(
             Origin({
                 srcEid: sourceEndpointId,
                 sender: bytes32(uint256(uint160(sourceAuthority))),
+                nonce:  1
+            }),
+            bytes32(0),
+            abi.encodeCall(MessageOrdering.push, (1)),
+            address(0),
+            ""
+        );
+    }
+
+    function test_lzReceive_revertsNoPeer() public {
+        destinationEndpointId = LZForwarder.ENDPOINT_ID_BASE;
+        destinationEndpoint   = LZForwarder.ENDPOINT_BASE;
+        initBaseContracts(getChain("base").createFork());
+
+        destination.selectFork();
+
+        vm.prank(bridge.destinationCrossChainMessenger);
+        vm.expectRevert(abi.encodeWithSelector(NoPeer.selector, 0));
+        LZReceiver(destinationReceiver).lzReceive(
+            Origin({
+                srcEid: 0,
+                sender: bytes32(uint256(uint160(sourceAuthority))),
+                nonce:  1
+            }),
+            bytes32(0),
+            abi.encodeCall(MessageOrdering.push, (1)),
+            address(0),
+            ""
+        );
+    }
+
+    function test_lzReceive_revertsOnlyPeer() public {
+        destinationEndpointId = LZForwarder.ENDPOINT_ID_BASE;
+        destinationEndpoint   = LZForwarder.ENDPOINT_BASE;
+        initBaseContracts(getChain("base").createFork());
+
+        destination.selectFork();
+
+        vm.prank(bridge.destinationCrossChainMessenger);
+        vm.expectRevert(abi.encodeWithSelector(OnlyPeer.selector, sourceEndpointId, bytes32(uint256(uint160(randomAddress)))));
+        LZReceiver(destinationReceiver).lzReceive(
+            Origin({
+                srcEid: sourceEndpointId,
+                sender: bytes32(uint256(uint160(randomAddress))),
                 nonce:  1
             }),
             bytes32(0),
@@ -55,6 +103,7 @@ contract LZIntegrationTest is IntegrationBaseTest {
 
         destination.selectFork();
 
+        // NOTE: To pass initial check, we set the peer.
         vm.prank(makeAddr("owner"));
         LZReceiver(destinationReceiver).setPeer(0, bytes32(uint256(uint160(sourceAuthority))));
 
@@ -80,6 +129,7 @@ contract LZIntegrationTest is IntegrationBaseTest {
 
         destination.selectFork();
 
+        // NOTE: To pass initial check, we set the peer.
         vm.prank(makeAddr("owner"));
         LZReceiver(destinationReceiver).setPeer(sourceEndpointId, bytes32(uint256(uint160(randomAddress))));
 
@@ -113,35 +163,25 @@ contract LZIntegrationTest is IntegrationBaseTest {
     }
 
     function initSourceReceiver() internal override returns (address) {
-        LZReceiver receiver = new LZReceiver(
+        return address(new LZReceiver(
             sourceEndpoint,
             destinationEndpointId,
             bytes32(uint256(uint160(destinationAuthority))),
             address(moSource),
             makeAddr("delegate"),
             makeAddr("owner")
-        );
-
-        vm.prank(makeAddr("owner"));
-        receiver.setPeer(destinationEndpointId, bytes32(uint256(uint160(destinationAuthority))));
-
-        return address(receiver);
+        ));
     }
 
     function initDestinationReceiver() internal override returns (address) {
-        LZReceiver receiver = new LZReceiver(
+        return address(new LZReceiver(
             destinationEndpoint,
             sourceEndpointId,
             bytes32(uint256(uint160(sourceAuthority))),
             address(moDestination),
             makeAddr("delegate"),
             makeAddr("owner")
-        );
-
-        vm.prank(makeAddr("owner"));
-        receiver.setPeer(sourceEndpointId, bytes32(uint256(uint160(sourceAuthority))));
-
-        return address(receiver);
+        ));
     }
 
     function initBridgeTesting() internal override returns (Bridge memory) {

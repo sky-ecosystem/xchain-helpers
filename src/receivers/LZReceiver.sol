@@ -31,6 +31,8 @@ contract LZReceiver is OApp {
         target          = _target;
         sourceAuthority = _sourceAuthority;
         srcEid          = _srcEid;
+
+        _setPeer(_srcEid, _sourceAuthority);
     }
 
     function _lzReceive(
