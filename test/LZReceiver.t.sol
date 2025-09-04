@@ -163,4 +163,45 @@ contract LZReceiverTest is Test {
         assertEq(target.count(), 1);
     }
 
+    function test_allowInitializePath() public {
+        // Should return true when origin.srcEid == srcEid, origin.sender == sourceAuthority and peers[origin.srcEid] != origin.sender
+        assertTrue(receiver.allowInitializePath(Origin({
+            srcEid: srcEid,
+            sender: bytes32(uint256(uint160(sourceAuthority))),
+            nonce:  1
+        })));
+
+        // Should return false when peers[origin.srcEid] != origin.sender
+
+        assertFalse(receiver.allowInitializePath(Origin({
+            srcEid: srcEid,
+            sender: bytes32(uint256(uint160(randomAddress))),
+            nonce:  1
+        })));
+
+        // Should return false when origin.srcEid != srcEid
+
+        // NOTE: Setting peer to make `super.allowInitializePath(origin)` return true
+        vm.prank(owner);
+        receiver.setPeer(srcEid + 1, bytes32(uint256(uint160(sourceAuthority))));
+
+        assertFalse(receiver.allowInitializePath(Origin({
+            srcEid: srcEid + 1,
+            sender: bytes32(uint256(uint160(sourceAuthority))),
+            nonce:  1
+        })));
+
+        // Should return false when origin.sender != sourceAuthority
+
+        // NOTE: Setting peer to make `super.allowInitializePath(origin)` return true
+        vm.prank(owner);
+        receiver.setPeer(srcEid, bytes32(uint256(uint160(randomAddress))));
+
+        assertFalse(receiver.allowInitializePath(Origin({
+            srcEid: srcEid,
+            sender: bytes32(uint256(uint160(randomAddress))),
+            nonce:  1
+        })));
+    }
+
 }

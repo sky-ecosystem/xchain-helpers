@@ -48,4 +48,10 @@ contract LZReceiver is OApp {
         target.functionCallWithValue(_message, msg.value);
     }
 
+    function allowInitializePath(Origin calldata origin) public view override returns (bool) {
+        return super.allowInitializePath(origin)
+            && origin.srcEid == srcEid
+            && origin.sender == sourceAuthority;
+    }
+
 }
