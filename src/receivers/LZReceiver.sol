@@ -1,23 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import { Address } from "lib/openzeppelin-contracts/contracts/utils/Address.sol";
+import { Address } from "openzeppelin-contracts/contracts/utils/Address.sol";
+import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-struct Origin {
-    uint32  srcEid;
-    bytes32 sender;
-    uint64  nonce;
-}
+import { OApp, Origin } from "layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 
 /**
  * @title  LZReceiver
  * @notice Receive messages from LayerZero-style bridge.
  */
-contract LZReceiver {
+contract LZReceiver is OApp {
 
     using Address for address;
 
-    address public immutable destinationEndpoint;
     address public immutable target;
 
     uint32  public immutable srcEid;
@@ -28,30 +24,26 @@ contract LZReceiver {
         address _destinationEndpoint,
         uint32  _srcEid,
         bytes32 _sourceAuthority,
-        address _target
-    ) {
-        destinationEndpoint = _destinationEndpoint;
-        target              = _target;
-        sourceAuthority     = _sourceAuthority;
-        srcEid              = _srcEid;
+        address _target,
+        address _delegate,
+        address _owner
+    ) OApp(_destinationEndpoint, _delegate) Ownable(_owner) {
+        target          = _target;
+        sourceAuthority = _sourceAuthority;
+        srcEid          = _srcEid;
     }
 
-    function lzReceive(
+    function _lzReceive(
         Origin calldata _origin,
         bytes32,  // _guid
         bytes calldata _message,
-        address,  // _executor,
+        address,  // _executor
         bytes calldata  // _extraData
-    ) external {
-        require(msg.sender == destinationEndpoint, "LZReceiver/invalid-sender");
+    ) internal override {
         require(_origin.srcEid == srcEid,          "LZReceiver/invalid-srcEid");
         require(_origin.sender == sourceAuthority, "LZReceiver/invalid-sourceAuthority");
 
-        target.functionCall(_message);
-    }
-
-    function allowInitializePath(Origin calldata origin) public view returns (bool) {
-        return origin.srcEid == srcEid && origin.sender == sourceAuthority;
+        target.functionCallWithValue(_message, msg.value);
     }
 
 }
