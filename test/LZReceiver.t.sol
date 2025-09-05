@@ -164,7 +164,7 @@ contract LZReceiverTest is Test {
     }
 
     function test_allowInitializePath() public {
-        // Should return true when origin.srcEid == srcEid, origin.sender == sourceAuthority and peers[origin.srcEid] != origin.sender
+        // Should return true when origin.srcEid == srcEid, origin.sender == sourceAuthority and peers[origin.srcEid] == origin.sender
         assertTrue(receiver.allowInitializePath(Origin({
             srcEid: srcEid,
             sender: bytes32(uint256(uint160(sourceAuthority))),
