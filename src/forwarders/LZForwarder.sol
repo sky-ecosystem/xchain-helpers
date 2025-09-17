@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.0;
 
+import { IERC20 }    from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 struct MessagingParams {
     uint32  dstEid;
     bytes32 receiver;
@@ -29,9 +32,12 @@ interface ILayerZeroEndpointV2 {
         MessagingParams calldata _params,
         address                  _sender
     ) external view returns (MessagingFee memory);
+    function lzToken() external view returns (address);
 }
 
 library LZForwarder {
+
+    error LzTokenUnavailable();
 
     uint32 public constant ENDPOINT_ID_BASE     = 30184;
     uint32 public constant ENDPOINT_ID_BNB      = 30102;
@@ -62,8 +68,18 @@ library LZForwarder {
         });
 
         MessagingFee memory fee = endpoint.quote(params, address(this));
+        if (fee.lzTokenFee > 0) _payLzToken(endpoint, fee.lzTokenFee);
 
         endpoint.send{ value: fee.nativeFee }(params, _refundAddress);
+    }
+
+    function _payLzToken(ILayerZeroEndpointV2 endpoint, uint256 _lzTokenFee) internal {
+        // @dev Cannot cache the token because it is not immutable in the endpoint.
+        address lzToken = endpoint.lzToken();
+        if (lzToken == address(0)) revert LzTokenUnavailable();
+
+        // Pay LZ token fee by sending tokens to the endpoint.
+        SafeERC20.safeTransferFrom(IERC20(lzToken), msg.sender, address(endpoint), _lzTokenFee);
     }
 
 }

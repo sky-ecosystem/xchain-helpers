@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 import { Address } from "openzeppelin-contracts/contracts/utils/Address.sol";
 import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-import { OApp, Origin } from "layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
+import { OAppReceiver, Origin, OAppCore } from "layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 
 /**
  * @title  LZReceiver
  * @notice Receive messages from LayerZero-style bridge.
  */
-contract LZReceiver is OApp {
+contract LZReceiver is OAppReceiver {
 
     using Address for address;
 
@@ -27,7 +27,7 @@ contract LZReceiver is OApp {
         address _target,
         address _delegate,
         address _owner
-    ) OApp(_destinationEndpoint, _delegate) Ownable(_owner) {
+    ) OAppCore(_destinationEndpoint, _delegate) Ownable(_owner) {
         target          = _target;
         sourceAuthority = _sourceAuthority;
         srcEid          = _srcEid;
