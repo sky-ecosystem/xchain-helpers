@@ -199,7 +199,8 @@ contract LZIntegrationTest is IntegrationBaseTest {
             ILayerZeroEndpointV2(bridge.sourceCrossChainMessenger),
             message,
             options,
-            sourceAuthority
+            sourceAuthority,
+            false
         );
     }
 
@@ -214,7 +215,8 @@ contract LZIntegrationTest is IntegrationBaseTest {
             ILayerZeroEndpointV2(bridge.destinationCrossChainMessenger),
             message,
             options,
-            destinationAuthority
+            destinationAuthority,
+            false
         );
     }
 
