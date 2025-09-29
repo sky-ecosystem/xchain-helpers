@@ -47,7 +47,7 @@ abstract contract IntegrationBaseTest is Test {
 
     Bridge bridge;
 
-    function setUp() public {
+    function setUp() public virtual {
         source = getChain("mainnet").createFork();
     }
 

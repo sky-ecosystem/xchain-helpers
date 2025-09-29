@@ -24,6 +24,7 @@ struct MessagingFee {
 }
 
 interface ILayerZeroEndpointV2 {
+    function setLzToken(address _lzToken) external;
     function send(
         MessagingParams calldata _params,
         address                  _refundAddress
@@ -80,7 +81,7 @@ library LZForwarder {
         if (lzToken == address(0)) revert LzTokenUnavailable();
 
         // Pay LZ token fee by sending tokens to the endpoint.
-        SafeERC20.safeTransferFrom(IERC20(lzToken), msg.sender, address(endpoint), _lzTokenFee);
+        SafeERC20.safeTransfer(IERC20(lzToken), address(endpoint), _lzTokenFee);
     }
 
 }
