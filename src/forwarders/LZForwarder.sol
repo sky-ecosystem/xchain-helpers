@@ -24,16 +24,16 @@ struct MessagingFee {
 }
 
 interface ILayerZeroEndpointV2 {
-    function setLzToken(address _lzToken) external;
+    function lzToken() external view returns (address);
     function send(
         MessagingParams calldata _params,
         address                  _refundAddress
     ) external payable returns (MessagingReceipt memory);
+    function setLzToken(address _lzToken) external;
     function quote(
         MessagingParams calldata _params,
         address                  _sender
     ) external view returns (MessagingFee memory);
-    function lzToken() external view returns (address);
 }
 
 library LZForwarder {

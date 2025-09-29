@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity >=0.8.0;
 
-import "./IntegrationBase.t.sol";
+import { IERC20 } from "forge-std/interfaces/IERC20.sol";
 
 import { OptionsBuilder } from "layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
 
 import { LZBridgeTesting }                   from "src/testing/bridges/LZBridgeTesting.sol";
 import { LZForwarder, ILayerZeroEndpointV2 } from "src/forwarders/LZForwarder.sol";
 import { LZReceiver, Origin }                from "src/receivers/LZReceiver.sol";
+import { RecordedLogs }                      from "src/testing/utils/RecordedLogs.sol";
 
-import { RecordedLogs } from "src/testing/utils/RecordedLogs.sol";
+import "./IntegrationBase.t.sol";
 
 interface ITreasury {
     function setLzTokenEnabled(bool _lzTokenEnabled) external;
@@ -94,6 +95,9 @@ contract LZIntegrationTestWithLZToken is IntegrationBaseTest {
 
         bytes memory options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200_000, 0);
 
+        assertEq(IERC20(lzToken).balanceOf(address(sourceAuthority)), 1 ether);
+        assertEq(address(sourceAuthority).balance,                    1 ether);
+
         LZForwarder.sendMessage(
             destinationEndpointId,
             bytes32(uint256(uint160(destinationReceiver))),
@@ -103,6 +107,10 @@ contract LZIntegrationTestWithLZToken is IntegrationBaseTest {
             sourceAuthority,
             true
         );
+
+        // LZ token and ETH spent
+        assertLt(IERC20(lzToken).balanceOf(address(sourceAuthority)), 1 ether);
+        assertLt(address(sourceAuthority).balance,                    1 ether);
     }
 
     function queueDestinationToSource(bytes memory message) internal override {
