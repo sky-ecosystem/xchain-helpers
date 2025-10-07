@@ -82,6 +82,8 @@ library LZBridgeTesting {
             return LZForwarder.ENDPOINT_BASE;
         } else if (name == keccak256("bnb_smart_chain")) {
             return LZForwarder.ENDPOINT_BNB;
+        } else if (name == keccak256("avalanche")) {
+            return LZForwarder.ENDPOINT_AVALANCHE;
         } else {
             revert("Unsupported chain");
         }
@@ -95,6 +97,8 @@ library LZBridgeTesting {
             return LZForwarder.RECEIVE_LIBRARY_BASE;
         } else if (name == keccak256("bnb_smart_chain")) {
             return LZForwarder.RECEIVE_LIBRARY_BNB;
+        } else if (name == keccak256("avalanche")) {
+            return LZForwarder.RECEIVE_LIBRARY_AVALANCHE;
         } else {
             revert("Unsupported chain");
         }
