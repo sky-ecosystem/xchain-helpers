@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.0;
 
+import { IERC20 } from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+
 struct TxParams {
     uint32  dstEid;
     bytes32 dstTarget;
@@ -24,14 +26,16 @@ interface IGovOapp {
     function sendTx(TxParams calldata _params, MessagingFee calldata _fee, address _refundAddress) external payable returns (MessagingReceipt memory msgReceipt);
 }
 
-library LzGovBridgeForwarder {
+library LZGovBridgeForwarder {
 
+    // Quote is provided separately to allow callers to send the exact fee amount to address(this) before calling sendMessage.
     function quote(
         address govOapp,
         uint32  dstEid,
         address dstTarget,
         bytes memory message,
-        bytes memory extraOptions
+        bytes memory extraOptions,
+        bool payInLzToken
     ) internal view returns (MessagingFee memory) {
 
         return IGovOapp(govOapp).quoteTx({
@@ -41,27 +45,32 @@ library LzGovBridgeForwarder {
                 dstCallData: message,
                 extraOptions: extraOptions
             }),
-            _payInLzToken: false
+            _payInLzToken: payInLzToken
         });
     }
 
+    // It is the caller's responsibility to ensure the correct lzToken address is passed.
     function sendMessage(
         address govOapp,
         uint32  dstEid,
         address dstTarget,
         bytes memory message,
         bytes memory extraOptions,
-        address refundAddress
+        address refundAddress,
+        MessagingFee memory fee,
+        address lzToken
     ) internal returns (MessagingReceipt memory) {
 
-        return IGovOapp(govOapp).sendTx{ value: msg.value }({
+        if (fee.lzTokenFee > 0) IERC20(lzToken).approve(govOapp, fee.lzTokenFee);
+
+        return IGovOapp(govOapp).sendTx{ value: fee.nativeFee }({
             _params: TxParams({
                 dstEid:      dstEid,
                 dstTarget:   bytes32(uint256(uint160(dstTarget))),
                 dstCallData: message,
                 extraOptions: extraOptions
             }),
-            _fee:           MessagingFee({ nativeFee: msg.value, lzTokenFee: 0 }),
+            _fee:           fee,
             _refundAddress: refundAddress
         });
     }

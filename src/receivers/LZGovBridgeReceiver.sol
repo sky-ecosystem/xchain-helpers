@@ -13,10 +13,10 @@ interface IGovernanceOAppReceiver {
 }
 
 /**
- * @title  LzGovBridgeReceiver
+ * @title  LZGovBridgeReceiver
  * @notice Receive messages via the Sky LZ governance bridge.
  */
-contract LzGovBridgeReceiver {
+contract LZGovBridgeReceiver {
 
     using Address for address;
 
@@ -37,14 +37,14 @@ contract LzGovBridgeReceiver {
         target          = _target;
     }
 
-    fallback(bytes calldata message) external returns (bytes memory) {
-        require(msg.sender == govOappReceiver, "LzGovBridgeReceiver/invalid-sender");
+    fallback(bytes calldata message) external payable returns (bytes memory) {
+        require(msg.sender == govOappReceiver, "LZGovBridgeReceiver/invalid-sender");
 
         MessageOrigin memory origin = IGovernanceOAppReceiver(govOappReceiver).messageOrigin();
-        require(origin.srcEid == srcEid,                                     "LzGovBridgeReceiver/invalid-srcEid");
-        require(address(uint160(uint256(origin.srcSender))) == srcAuthority, "LzGovBridgeReceiver/invalid-srcAuthority");
+        require(origin.srcEid == srcEid,                                     "LZGovBridgeReceiver/invalid-srcEid");
+        require(address(uint160(uint256(origin.srcSender))) == srcAuthority, "LZGovBridgeReceiver/invalid-srcAuthority");
 
-        return target.functionCall(message);
+        return target.functionCallWithValue(message, msg.value);
     }
 
 }
