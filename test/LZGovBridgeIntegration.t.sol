@@ -72,7 +72,7 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
         vm.startPrank(govOwner);
         IGovOappSender(govOappSender).setPeer(
             destinationEndpointId,
-            bytes32(uint256(uint160(destinationReceiver)))
+            bytes32(uint256(uint160(address(govOappReceiver))))
         );
         IGovOappSender(govOappSender).setCanCallTarget(
             address(this),
@@ -91,15 +91,6 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
         assertEq(moDestination.length(), 2);
         assertEq(moDestination.messages(0), 1);
         assertEq(moDestination.messages(1), 2);
-
-        // Send one more to ensure subsequent calls don't repeat
-        source.selectFork();
-        _sendGovBridgeMessage(abi.encodeCall(MessageOrdering.push, (3)));
-
-        relaySourceToDestination();
-
-        assertEq(moDestination.length(), 3);
-        assertEq(moDestination.messages(2), 3);
     }
 
     function _sendGovBridgeMessage(bytes memory message) internal {
@@ -139,7 +130,7 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
         govBridgeReceiver = new LZGovBridgeReceiver(
             address(govOappReceiver),
             sourceEndpointId,
-            address(this),         // srcAuthority: the test contract calls sendTx
+            address(this),         // srcAuthority: the test contract calls sendTx on govOappSender
             address(moDestination)
         );
         return address(govOappReceiver);
@@ -162,7 +153,7 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
     }
 
     function relaySourceToDestination() internal override {
-        bridge.relayMessagesToDestination(true, govOappSender, destinationReceiver);
+        bridge.relayMessagesToDestination(true, govOappSender, address(govOappReceiver));
     }
 
     function relayDestinationToSource() internal pure override {

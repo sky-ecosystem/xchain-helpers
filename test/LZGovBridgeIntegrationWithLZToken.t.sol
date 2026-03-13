@@ -84,7 +84,7 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
         vm.startPrank(govOwner);
         IGovOappSender(govOappSender).setPeer(
             destinationEndpointId,
-            bytes32(uint256(uint160(destinationReceiver)))
+            bytes32(uint256(uint160(address(govOappReceiver))))
         );
         IGovOappSender(govOappSender).setCanCallTarget(
             address(this),
@@ -115,11 +115,11 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
             true
         );
 
+        assertGt(fee.nativeFee,  0);
+        assertGt(fee.lzTokenFee, 0);
+
         vm.deal(address(this), fee.nativeFee);
         deal(lzToken, address(this), fee.lzTokenFee);
-
-        assertEq(IERC20(lzToken).balanceOf(address(this)), fee.lzTokenFee);
-        assertEq(address(this).balance,                     fee.nativeFee);
 
         LZGovBridgeForwarder.sendMessage(
             govOappSender,
@@ -172,7 +172,7 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
     }
 
     function relaySourceToDestination() internal override {
-        bridge.relayMessagesToDestination(true, govOappSender, destinationReceiver);
+        bridge.relayMessagesToDestination(true, govOappSender, address(govOappReceiver));
     }
 
     function relayDestinationToSource() internal pure override {
