@@ -14,11 +14,7 @@ import { LZGovBridgeReceiver }                 from "src/receivers/LZGovBridgeRe
 
 import { GovernanceOAppReceiverMock } from "test/mocks/lz/GovernanceOAppReceiverMock.sol";
 
-interface IGovOappSenderLzToken {
-    function owner() external view returns (address);
-    function setPeer(uint32 _eid, bytes32 _peer) external;
-    function setCanCallTarget(address _srcSender, uint32 _dstEid, bytes32 _dstTarget, bool _canCall) external;
-}
+import { IChainLog, IGovOappSender } from "test/LZGovBridgeIntegration.t.sol";
 
 interface ITreasury {
     function setLzTokenEnabled(bool _lzTokenEnabled) external;
@@ -31,19 +27,20 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
     using LZBridgeTesting for *;
     using OptionsBuilder  for bytes;
 
-    address constant GOV_OAPP_SENDER = 0x27FC1DD771817b53bE48Dc28789533BEa53C9CCA;
+    IChainLog constant chainlog = IChainLog(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
+
+    address govOappSender;
 
     uint32 sourceEndpointId = LZForwarder.ENDPOINT_ID_ETHEREUM;
     uint32 destinationEndpointId;
 
-    address sourceEndpoint = LZForwarder.ENDPOINT_ETHEREUM;
     address destinationEndpoint;
 
     address lzToken  = 0x6985884C4392D348587B19cb9eAAf157F13271cd;
     address lzOwner  = 0xBe010A7e3686FdF65E93344ab664D065A0B02478;
     address treasury = 0x5ebB3f2feaA15271101a927869B3A56837e73056;
 
-    GovernanceOAppReceiverMock govReceiver;
+    GovernanceOAppReceiverMock govOappReceiver;
     LZGovBridgeReceiver        govBridgeReceiver;
 
     function setUp() public override {
@@ -51,8 +48,10 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
 
         source.selectFork();
 
+        govOappSender = chainlog.getAddress("LZ_GOV_SENDER");
+
         vm.startPrank(lzOwner);
-        ILayerZeroEndpointV2(sourceEndpoint).setLzToken(lzToken);
+        ILayerZeroEndpointV2(LZForwarder.ENDPOINT_ETHEREUM).setLzToken(lzToken);
         ITreasury(treasury).setLzTokenEnabled(true);
         ITreasury(treasury).setLzTokenFee(1e18);
         vm.stopPrank();
@@ -81,13 +80,13 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
 
         // Configure the GovernanceOAppSender: set peer and grant permission
         source.selectFork();
-        address govOwner = IGovOappSenderLzToken(GOV_OAPP_SENDER).owner();
+        address govOwner = IGovOappSender(govOappSender).owner();
         vm.startPrank(govOwner);
-        IGovOappSenderLzToken(GOV_OAPP_SENDER).setPeer(
+        IGovOappSender(govOappSender).setPeer(
             destinationEndpointId,
             bytes32(uint256(uint160(destinationReceiver)))
         );
-        IGovOappSenderLzToken(GOV_OAPP_SENDER).setCanCallTarget(
+        IGovOappSender(govOappSender).setCanCallTarget(
             address(this),
             destinationEndpointId,
             bytes32(uint256(uint160(address(govBridgeReceiver)))),
@@ -108,7 +107,7 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
         bytes memory extraOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(200_000, 0);
 
         MessagingFee memory fee = LZGovBridgeForwarder.quote(
-            GOV_OAPP_SENDER,
+            govOappSender,
             destinationEndpointId,
             address(govBridgeReceiver),
             message,
@@ -123,7 +122,7 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
         assertEq(address(this).balance,                     fee.nativeFee);
 
         LZGovBridgeForwarder.sendMessage(
-            GOV_OAPP_SENDER,
+            govOappSender,
             destinationEndpointId,
             address(govBridgeReceiver),
             message,
@@ -141,19 +140,19 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
     // --- IntegrationBaseTest overrides ---
 
     function initDestinationReceiver() internal override returns (address) {
-        govReceiver = new GovernanceOAppReceiverMock(
+        govOappReceiver = new GovernanceOAppReceiverMock(
             sourceEndpointId,
-            bytes32(uint256(uint160(GOV_OAPP_SENDER))),
+            bytes32(uint256(uint160(govOappSender))),
             destinationEndpoint,
             address(this)
         );
         govBridgeReceiver = new LZGovBridgeReceiver(
-            address(govReceiver),
+            address(govOappReceiver),
             sourceEndpointId,
             address(this),
             address(moDestination)
         );
-        return address(govReceiver);
+        return address(govOappReceiver);
     }
 
     function initSourceReceiver() internal override returns (address) {
@@ -173,7 +172,7 @@ contract LZGovBridgeIntegrationTestWithLZToken is IntegrationBaseTest {
     }
 
     function relaySourceToDestination() internal override {
-        bridge.relayMessagesToDestination(true, GOV_OAPP_SENDER, destinationReceiver);
+        bridge.relayMessagesToDestination(true, govOappSender, destinationReceiver);
     }
 
     function relayDestinationToSource() internal pure override {

@@ -5,9 +5,8 @@ import "forge-std/Test.sol";
 
 import { TargetContractMock }         from "test/mocks/TargetContractMock.sol";
 import { GovernanceOAppReceiverMock } from "test/mocks/lz/GovernanceOAppReceiverMock.sol";
-import { EndpointMock }              from "test/mocks/lz/EndpointMock.sol";
-
-import { LZGovBridgeReceiver } from "src/receivers/LZGovBridgeReceiver.sol";
+import { EndpointMock }               from "test/mocks/lz/EndpointMock.sol";
+import { LZGovBridgeReceiver }        from "src/receivers/LZGovBridgeReceiver.sol";
 
 contract LZGovBridgeReceiverTest is Test {
 
@@ -18,7 +17,7 @@ contract LZGovBridgeReceiverTest is Test {
     address randomAddress  = makeAddr("randomAddress");
     address srcAuthority   = makeAddr("srcAuthority");
 
-    uint32 srcEid = 30101;
+    uint32 srcEid = 30101; // endpoint id on ethereum
 
     function setUp() public {
         target          = new TargetContractMock();

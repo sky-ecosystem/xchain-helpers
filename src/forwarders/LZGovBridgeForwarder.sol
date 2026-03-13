@@ -28,7 +28,7 @@ interface IGovOapp {
 
 library LZGovBridgeForwarder {
 
-    // Quote is provided separately to allow callers to send the exact fee amount to address(this) before calling sendMessage.
+    // `quote` is provided separately to allow callers to send the exact fee amount to the forwarder
     function quote(
         address govOapp,
         uint32  dstEid,
