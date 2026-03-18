@@ -42,9 +42,9 @@ library LZGovBridgeForwarder {
 
         return IGovOapp(govOapp).quoteTx({
             _params: TxParams({
-                dstEid:      dstEid,
-                dstTarget:   bytes32(uint256(uint160(dstTarget))),
-                dstCallData: message,
+                dstEid:       dstEid,
+                dstTarget:    bytes32(uint256(uint160(dstTarget))),
+                dstCallData:  message,
                 extraOptions: extraOptions
             }),
             _payInLzToken: payInLzToken
@@ -67,9 +67,9 @@ library LZGovBridgeForwarder {
 
         return IGovOapp(govOapp).sendTx{ value: fee.nativeFee }({
             _params: TxParams({
-                dstEid:      dstEid,
-                dstTarget:   bytes32(uint256(uint160(dstTarget))),
-                dstCallData: message,
+                dstEid:       dstEid,
+                dstTarget:    bytes32(uint256(uint160(dstTarget))),
+                dstCallData:  message,
                 extraOptions: extraOptions
             }),
             _fee:           fee,
