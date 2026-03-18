@@ -95,6 +95,18 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
         assertEq(moDestination.length(), 2);
         assertEq(moDestination.messages(0), 1);
         assertEq(moDestination.messages(1), 2);
+
+        // Send a message with ether value
+        source.selectFork();
+        _sendGovBridgeMessage(abi.encodeCall(MessageOrdering.push, (3)));
+
+        uint256 value = 1 ether;
+        vm.deal(address(this), value);
+        bridge.relayMessagesToDestination(true, govOappSender, address(govOappReceiver), value);
+
+        assertEq(moDestination.length(), 3);
+        assertEq(moDestination.messages(2), 3);
+        assertEq(address(moDestination).balance, value);
     }
 
     function _sendGovBridgeMessage(bytes memory message) internal {

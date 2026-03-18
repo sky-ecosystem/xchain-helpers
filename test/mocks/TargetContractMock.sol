@@ -5,7 +5,7 @@ contract TargetContractMock {
 
     uint256 public count;
 
-    function increment() external {
+    function increment() external payable {
         count++;
     }
 

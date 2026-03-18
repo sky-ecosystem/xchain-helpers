@@ -119,6 +119,16 @@ library LZBridgeTesting {
         address        sender,
         address        receiver
     ) internal {
+        relayMessagesToDestination(bridge, switchToDestinationFork, sender, receiver, 0);
+    }
+
+    function relayMessagesToDestination(
+        Bridge storage bridge,
+        bool           switchToDestinationFork,
+        address        sender,
+        address        receiver,
+        uint256        value
+    ) internal {
         bridge.destination.selectFork();
 
         Vm.Log[] memory logs = bridge.ingestAndFilterLogs(true, PACKET_SENT_TOPIC, bridge.sourceCrossChainMessenger);
@@ -151,7 +161,7 @@ library LZBridgeTesting {
 
                 // Step 3: Call permissionless lzReceive on endpoint now that payload is verified
 
-                IEndpoint(bridge.destinationCrossChainMessenger).lzReceive(
+                IEndpoint(bridge.destinationCrossChainMessenger).lzReceive{ value: value }(
                     Origin({
                         srcEid: getSourceEid(encodedPacket),
                         sender: bytes32(uint256(uint160(sender))),

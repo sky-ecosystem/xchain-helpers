@@ -77,6 +77,23 @@ contract LZGovBridgeReceiverTest is Test {
         assertEq(target.count(), 1);
     }
 
+    function test_successWithValue() public {
+        govOappReceiver.setMessageOrigin(srcEid, bytes32(uint256(uint160(srcAuthority))));
+
+        uint256 value = 1 ether;
+        vm.deal(address(govOappReceiver), value);
+
+        assertEq(target.count(), 0);
+        assertEq(address(target).balance, 0);
+
+        vm.prank(address(govOappReceiver));
+        (bool success,) = address(receiver).call{value: value}(abi.encodeCall(TargetContractMock.increment, ()));
+        assertTrue(success);
+
+        assertEq(target.count(), 1);
+        assertEq(address(target).balance, value);
+    }
+
     function test_targetRevert() public {
         govOappReceiver.setMessageOrigin(srcEid, bytes32(uint256(uint160(srcAuthority))));
 
