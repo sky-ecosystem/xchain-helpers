@@ -46,8 +46,7 @@ contract LZGovBridgeReceiverTest is Test {
     function test_invalidSender() public {
         vm.prank(randomAddress);
         vm.expectRevert("LZGovBridgeReceiver/invalid-sender");
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
-        success;
+        address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
     }
 
     function test_invalidSrcEid() public {
@@ -55,8 +54,7 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("LZGovBridgeReceiver/invalid-srcEid");
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
-        success;
+        address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
     }
 
     function test_invalidSrcAuthority() public {
@@ -64,8 +62,7 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("LZGovBridgeReceiver/invalid-srcAuthority");
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
-        success;
+        address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
     }
 
     function test_success() public {
@@ -85,8 +82,7 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("TargetContract/error");
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.revertFunc, ()));
-        success;
+        address(receiver).call(abi.encodeCall(TargetContractMock.revertFunc, ()));
     }
 
 }
