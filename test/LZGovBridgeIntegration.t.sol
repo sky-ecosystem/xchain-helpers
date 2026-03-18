@@ -6,7 +6,6 @@ import "./IntegrationBase.t.sol";
 import { OptionsBuilder } from "layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
 
 import { LZBridgeTesting }                     from "src/testing/bridges/LZBridgeTesting.sol";
-import { LZForwarder }                         from "src/forwarders/LZForwarder.sol";
 import { LZGovBridgeForwarder, MessagingFee }  from "src/forwarders/LZGovBridgeForwarder.sol";
 import { LZGovBridgeReceiver }                 from "src/receivers/LZGovBridgeReceiver.sol";
 
@@ -28,11 +27,16 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
     using LZBridgeTesting for *;
     using OptionsBuilder  for bytes;
 
+    uint32  constant ENDPOINT_ID_BASE = 30184;
+    uint32  constant ENDPOINT_ID_BNB  = 30102;
+    address constant ENDPOINT_BASE    = 0x1a44076050125825900e736c501f859c50fE728c;
+    address constant ENDPOINT_BNB     = 0x1a44076050125825900e736c501f859c50fE728c;
+
     IChainLog constant chainlog = IChainLog(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
     address govOappSender;
 
-    uint32 sourceEndpointId = LZForwarder.ENDPOINT_ID_ETHEREUM;
+    uint32 sourceEndpointId = LZGovBridgeForwarder.ENDPOINT_ID_ETHEREUM;
     uint32 destinationEndpointId;
     address destinationEndpoint;
 
@@ -46,15 +50,15 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
     }
 
     function test_base() public {
-        destinationEndpointId = LZForwarder.ENDPOINT_ID_BASE;
-        destinationEndpoint   = LZForwarder.ENDPOINT_BASE;
+        destinationEndpointId = ENDPOINT_ID_BASE;
+        destinationEndpoint   = ENDPOINT_BASE;
 
         _runGovBridgeTest(getChain("base").createFork());
     }
 
     function test_binance() public {
-        destinationEndpointId = LZForwarder.ENDPOINT_ID_BNB;
-        destinationEndpoint   = LZForwarder.ENDPOINT_BNB;
+        destinationEndpointId = ENDPOINT_ID_BNB;
+        destinationEndpoint   = ENDPOINT_BNB;
 
         _runGovBridgeTest(getChain("bnb_smart_chain").createFork());
     }

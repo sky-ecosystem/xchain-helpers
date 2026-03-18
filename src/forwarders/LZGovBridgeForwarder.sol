@@ -28,12 +28,7 @@ interface IGovOapp {
 
 library LZGovBridgeForwarder {
 
-    uint32 public constant ENDPOINT_ID_BASE     = 30184;
-    uint32 public constant ENDPOINT_ID_BNB      = 30102;
     uint32 public constant ENDPOINT_ID_ETHEREUM = 30101;
-
-    address public constant ENDPOINT_BASE = 0x1a44076050125825900e736c501f859c50fE728c;
-    address public constant ENDPOINT_BNB  = 0x1a44076050125825900e736c501f859c50fE728c;
 
     // `quote` is provided separately to allow callers to send the exact fee amount to the forwarder
     function quote(
