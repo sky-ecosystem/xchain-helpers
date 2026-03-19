@@ -94,6 +94,12 @@ contract LZGovBridgeReceiverTest is Test {
         assertEq(address(target).balance, value);
     }
 
+    function test_receiveRevertsOnPlainEthTransfer() public {
+        vm.deal(address(this), 1 ether);
+        vm.expectRevert("LZGovBridgeReceiver/not-supported");
+        address(receiver).call{value: 1 ether}("");
+    }
+
     function test_targetRevert() public {
         govOappReceiver.setMessageOrigin(srcEid, bytes32(uint256(uint160(srcAuthority))));
 

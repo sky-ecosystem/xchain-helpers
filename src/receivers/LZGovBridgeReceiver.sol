@@ -47,4 +47,7 @@ contract LZGovBridgeReceiver {
         return target.functionCallWithValue(message, msg.value);
     }
 
+    receive() external payable {
+        revert("LZGovBridgeReceiver/not-supported");
+    }
 }
