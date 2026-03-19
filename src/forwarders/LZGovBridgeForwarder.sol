@@ -30,7 +30,7 @@ library LZGovBridgeForwarder {
 
     uint32 public constant ENDPOINT_ID_ETHEREUM = 30101;
 
-    // `quote` is provided separately to allow callers to send the exact fee amount to the forwarder
+    // `quote` is provided separately to allow sending/approving the exact fee amount
     function quote(
         address govOapp,
         uint32  dstEid,
@@ -55,7 +55,7 @@ library LZGovBridgeForwarder {
     function sendMessage(
         address govOapp,
         uint32  dstEid,
-        address dstTarget,
+        address dstTarget, // Typically the receiver contract
         bytes memory message,
         bytes memory extraOptions,
         address refundAddress,

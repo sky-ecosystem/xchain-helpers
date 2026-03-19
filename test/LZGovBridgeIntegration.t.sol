@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity >=0.8.0;
 
-import "./IntegrationBase.t.sol";
+import "forge-std/Test.sol";
 
 import { OptionsBuilder } from "layerzerolabs/oapp-evm/contracts/oapp/libs/OptionsBuilder.sol";
 
-import { LZBridgeTesting }                     from "src/testing/bridges/LZBridgeTesting.sol";
-import { LZGovBridgeForwarder, MessagingFee }  from "src/forwarders/LZGovBridgeForwarder.sol";
-import { LZGovBridgeReceiver }                 from "src/receivers/LZGovBridgeReceiver.sol";
+import { Bridge }                from "src/testing/Bridge.sol";
+import { Domain, DomainHelpers } from "src/testing/Domain.sol";
+import { LZBridgeTesting }      from "src/testing/bridges/LZBridgeTesting.sol";
+
+import { LZGovBridgeForwarder, MessagingFee } from "src/forwarders/LZGovBridgeForwarder.sol";
+import { LZGovBridgeReceiver }                from "src/receivers/LZGovBridgeReceiver.sol";
 
 import { GovernanceOAppReceiverMock } from "test/mocks/lz/GovernanceOAppReceiverMock.sol";
+import { MessageOrdering }           from "test/IntegrationBase.t.sol";
 
 interface IChainLog {
     function getAddress(bytes32) external view returns (address);
@@ -21,7 +25,10 @@ interface IGovOappSender {
     function setCanCallTarget(address _srcSender, uint32 _dstEid, bytes32 _dstTarget, bool _canCall) external;
 }
 
-contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
+// NOTE: Does not inherit IntegrationBaseTest because the LZ gov bridge is unidirectional
+// (source -> destination only) and requires existing on-chain infrastructure
+// (GovernanceOAppSender) that doesn't fit the bidirectional runCrossChainTests pattern.
+contract LZGovBridgeIntegrationTest is Test {
 
     using DomainHelpers   for *;
     using LZBridgeTesting for *;
@@ -34,6 +41,15 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
 
     IChainLog constant chainlog = IChainLog(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
+    address sourceAuthority = makeAddr("sourceAuthority");
+
+    Domain source;
+    Domain destination;
+
+    MessageOrdering moDestination;
+
+    Bridge bridge;
+
     address govOappSender;
 
     uint32 sourceEndpointId = LZGovBridgeForwarder.ENDPOINT_ID_ETHEREUM;
@@ -43,8 +59,8 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
     GovernanceOAppReceiverMock govOappReceiver;
     LZGovBridgeReceiver        govBridgeReceiver;
 
-    function setUp() public override {
-        super.setUp();
+    function setUp() public {
+        source = getChain("mainnet").createFork();
         source.selectFork();
         govOappSender = chainlog.getAddress("LZ_GOV_SENDER");
     }
@@ -64,10 +80,25 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
     }
 
     function _runGovBridgeTest(Domain memory _destination) internal {
-        initBaseContracts(_destination);
+        destination = _destination;
 
-        // Allow LZGovBridgeReceiver to call moDestination
+        bridge = LZBridgeTesting.createLZBridge(source, destination);
+
+        // Deploy destination contracts
         destination.selectFork();
+        moDestination = new MessageOrdering();
+        govOappReceiver = new GovernanceOAppReceiverMock(
+            sourceEndpointId,
+            bytes32(uint256(uint160(govOappSender))),
+            destinationEndpoint,
+            address(this)
+        );
+        govBridgeReceiver = new LZGovBridgeReceiver(
+            address(govOappReceiver),
+            sourceEndpointId,
+            address(this),
+            address(moDestination)
+        );
         moDestination.setReceiver(address(govBridgeReceiver));
 
         // Configure the GovernanceOAppSender: set peer and grant permission
@@ -90,7 +121,7 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
         _sendGovBridgeMessage(abi.encodeCall(MessageOrdering.push, (1)));
         _sendGovBridgeMessage(abi.encodeCall(MessageOrdering.push, (2)));
 
-        relaySourceToDestination();
+        bridge.relayMessagesToDestination(true, govOappSender, address(govOappReceiver));
 
         assertEq(moDestination.length(), 2);
         assertEq(moDestination.messages(0), 1);
@@ -132,48 +163,6 @@ contract LZGovBridgeIntegrationTest is IntegrationBaseTest {
             fee,
             address(0)
         );
-    }
-
-    // --- IntegrationBaseTest overrides ---
-
-    function initDestinationReceiver() internal override returns (address) {
-        govOappReceiver = new GovernanceOAppReceiverMock(
-            sourceEndpointId,
-            bytes32(uint256(uint160(govOappSender))),
-            destinationEndpoint,
-            address(this)
-        );
-        govBridgeReceiver = new LZGovBridgeReceiver(
-            address(govOappReceiver),
-            sourceEndpointId,
-            address(this),         // srcAuthority: the test contract calls sendTx on govOappSender
-            address(moDestination)
-        );
-        return address(govOappReceiver);
-    }
-
-    function initSourceReceiver() internal override returns (address) {
-        return address(0);
-    }
-
-    function initBridgeTesting() internal override returns (Bridge memory) {
-        return LZBridgeTesting.createLZBridge(source, destination);
-    }
-
-    function queueSourceToDestination(bytes memory) internal pure override {
-        revert("not supported");
-    }
-
-    function queueDestinationToSource(bytes memory) internal pure override {
-        revert("not supported");
-    }
-
-    function relaySourceToDestination() internal override {
-        bridge.relayMessagesToDestination(true, govOappSender, address(govOappReceiver));
-    }
-
-    function relayDestinationToSource() internal pure override {
-        revert("not supported");
     }
 
 }
