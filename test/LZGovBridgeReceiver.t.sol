@@ -46,7 +46,8 @@ contract LZGovBridgeReceiverTest is Test {
     function test_invalidSender() public {
         vm.prank(randomAddress);
         vm.expectRevert("LZGovBridgeReceiver/invalid-sender");
-        address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
+        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
+        success; // silence lint
     }
 
     function test_invalidSrcEid() public {
@@ -54,7 +55,8 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("LZGovBridgeReceiver/invalid-srcEid");
-        address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
+        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
+        success;
     }
 
     function test_invalidSrcAuthority() public {
@@ -62,7 +64,8 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("LZGovBridgeReceiver/invalid-srcAuthority");
-        address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
+        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
+        success;
     }
 
     function test_success() public {
@@ -97,7 +100,8 @@ contract LZGovBridgeReceiverTest is Test {
     function test_receiveRevertsOnPlainEthTransfer() public {
         vm.deal(address(this), 1 ether);
         vm.expectRevert("LZGovBridgeReceiver/not-supported");
-        address(receiver).call{value: 1 ether}("");
+        (bool success,) = address(receiver).call{value: 1 ether}("");
+        success;
     }
 
     function test_targetRevert() public {
@@ -105,7 +109,8 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("TargetContract/error");
-        address(receiver).call(abi.encodeCall(TargetContractMock.revertFunc, ()));
+        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.revertFunc, ()));
+        success;
     }
 
 }
