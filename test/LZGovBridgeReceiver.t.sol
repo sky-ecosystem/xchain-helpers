@@ -46,8 +46,7 @@ contract LZGovBridgeReceiverTest is Test {
     function test_invalidSender() public {
         vm.prank(randomAddress);
         vm.expectRevert("LZGovBridgeReceiver/invalid-sender");
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
-        success; // silence lint
+        TargetContractMock(address(receiver)).increment();
     }
 
     function test_invalidSrcEid() public {
@@ -55,8 +54,7 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("LZGovBridgeReceiver/invalid-srcEid");
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
-        success;
+        TargetContractMock(address(receiver)).increment();
     }
 
     function test_invalidSrcAuthority() public {
@@ -64,8 +62,7 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("LZGovBridgeReceiver/invalid-srcAuthority");
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
-        success;
+        TargetContractMock(address(receiver)).increment();
     }
 
     function test_success() public {
@@ -74,8 +71,7 @@ contract LZGovBridgeReceiverTest is Test {
         assertEq(target.count(), 0);
 
         vm.prank(address(govOappReceiver));
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.increment, ()));
-        assertTrue(success);
+        TargetContractMock(address(receiver)).increment();
 
         assertEq(target.count(), 1);
     }
@@ -90,8 +86,7 @@ contract LZGovBridgeReceiverTest is Test {
         assertEq(address(target).balance, 0);
 
         vm.prank(address(govOappReceiver));
-        (bool success,) = address(receiver).call{value: value}(abi.encodeCall(TargetContractMock.increment, ()));
-        assertTrue(success);
+        TargetContractMock(address(receiver)).increment{value: value}();
 
         assertEq(target.count(), 1);
         assertEq(address(target).balance, value);
@@ -109,8 +104,7 @@ contract LZGovBridgeReceiverTest is Test {
 
         vm.prank(address(govOappReceiver));
         vm.expectRevert("TargetContract/error");
-        (bool success,) = address(receiver).call(abi.encodeCall(TargetContractMock.revertFunc, ()));
-        success;
+        TargetContractMock(address(receiver)).revertFunc();
     }
 
 }
