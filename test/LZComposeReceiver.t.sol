@@ -157,6 +157,23 @@ contract LZComposeReceiverTest is Test {
         );
     }
 
+    function test_lzReceive_invalidValue() public {
+        vm.deal(destinationEndpoint, 1 ether);
+        vm.prank(destinationEndpoint);
+        vm.expectRevert("LZComposeReceiver/invalid-value");
+        receiver.lzReceive{ value: 1 ether }(
+            Origin({
+                srcEid: srcEid,
+                sender: bytes32(uint256(uint160(sourceAuthority))),
+                nonce:  1
+            }),
+            bytes32(0),
+            abi.encodeCall(TargetContractMock.increment, ()),
+            address(0),
+            ""
+        );
+    }
+
     function test_lzReceive_success() public {
         bytes32 guid    = keccak256("test-guid");
         bytes memory msg_ = abi.encodeCall(TargetContractMock.increment, ());
