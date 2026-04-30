@@ -45,7 +45,6 @@ contract LZComposeReceiver is OAppReceiver, ILayerZeroComposer {
     ) internal override {
         require(_origin.srcEid == srcEid,          "LZComposeReceiver/invalid-srcEid");
         require(_origin.sender == sourceAuthority, "LZComposeReceiver/invalid-sourceAuthority");
-        require(msg.value == 0,                    "LZComposeReceiver/invalid-value");
 
         endpoint.sendCompose(address(this), _guid, 0, _message);
     }
