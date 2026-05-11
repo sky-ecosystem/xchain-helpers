@@ -26,6 +26,20 @@ interface IEndpoint {
         bytes calldata _message,
         bytes calldata _extraData
     ) external payable;
+    function lzCompose(
+        address _from,
+        address _to,
+        bytes32 _guid,
+        uint16  _index,
+        bytes calldata _message,
+        bytes calldata _extraData
+    ) external payable;
+    function composeQueue(
+        address _from,
+        address _to,
+        bytes32 _guid,
+        uint16  _index
+    ) external view returns (bytes32 messageHash);
 }
 
 contract PacketBytesHelper {
@@ -54,7 +68,8 @@ contract PacketBytesHelper {
 
 library LZBridgeTesting {
 
-    bytes32 private constant PACKET_SENT_TOPIC = keccak256("PacketSent(bytes,bytes,address)");
+    bytes32 private constant PACKET_SENT_TOPIC   = keccak256("PacketSent(bytes,bytes,address)");
+    bytes32 private constant COMPOSE_SENT_TOPIC  = keccak256("ComposeSent(address,address,bytes32,uint16,bytes)");
 
     using DomainHelpers for *;
     using RecordedLogs  for *;
@@ -119,6 +134,16 @@ library LZBridgeTesting {
         address        sender,
         address        receiver
     ) internal {
+        relayMessagesToDestination(bridge, switchToDestinationFork, sender, receiver, 0);
+    }
+
+    function relayMessagesToDestination(
+        Bridge storage bridge,
+        bool           switchToDestinationFork,
+        address        sender,
+        address        receiver,
+        uint256        value // for simplicity, we pass value explicitly rather than decoding it from the LZ options
+    ) internal {
         bridge.destination.selectFork();
 
         Vm.Log[] memory logs = bridge.ingestAndFilterLogs(true, PACKET_SENT_TOPIC, bridge.sourceCrossChainMessenger);
@@ -151,7 +176,7 @@ library LZBridgeTesting {
 
                 // Step 3: Call permissionless lzReceive on endpoint now that payload is verified
 
-                IEndpoint(bridge.destinationCrossChainMessenger).lzReceive(
+                IEndpoint(bridge.destinationCrossChainMessenger).lzReceive{ value: value }(
                     Origin({
                         srcEid: getSourceEid(encodedPacket),
                         sender: bytes32(uint256(uint160(sender))),
@@ -175,6 +200,16 @@ library LZBridgeTesting {
         bool           switchToSourceFork,
         address        sender,
         address        receiver
+    ) internal {
+        relayMessagesToSource(bridge, switchToSourceFork, sender, receiver, 0);
+    }
+
+    function relayMessagesToSource(
+        Bridge storage bridge,
+        bool           switchToSourceFork,
+        address        sender,
+        address        receiver,
+        uint256        value // for simplicity, we pass value explicitly rather than decoding it from the LZ options
     ) internal {
         bridge.source.selectFork();
 
@@ -208,7 +243,7 @@ library LZBridgeTesting {
 
                 // Step 3: Call permissionless lzReceive on endpoint now that payload is verified
 
-                IEndpoint(bridge.sourceCrossChainMessenger).lzReceive(
+                IEndpoint(bridge.sourceCrossChainMessenger).lzReceive{ value: value }(
                     Origin({
                         srcEid: getSourceEid(encodedPacket),
                         sender: bytes32(uint256(uint160(sender))),
@@ -224,6 +259,63 @@ library LZBridgeTesting {
 
         if (!switchToSourceFork) {
             bridge.destination.selectFork();
+        }
+    }
+
+    function relayComposeMessagesToDestination(
+        Bridge storage bridge,
+        bool switchToDestinationFork
+    ) internal {
+        relayComposeMessagesToDestination(bridge, switchToDestinationFork, 0);
+    }
+
+    function relayComposeMessagesToDestination(
+        Bridge storage bridge,
+        bool switchToDestinationFork,
+        uint256 value // for simplicity, we pass value explicitly rather than decoding it from the LZ options
+    ) internal {
+        bridge.destination.selectFork();
+        _relayComposeMessages(bridge.destinationCrossChainMessenger, value);
+
+        if (!switchToDestinationFork) {
+            bridge.source.selectFork();
+        }
+    }
+
+    function relayComposeMessagesToSource(
+        Bridge storage bridge,
+        bool switchToSourceFork
+    ) internal {
+        relayComposeMessagesToSource(bridge, switchToSourceFork, 0);
+    }
+
+    function relayComposeMessagesToSource(
+        Bridge storage bridge,
+        bool switchToSourceFork,
+        uint256 value // for simplicity, we pass value explicitly rather than decoding it from the LZ options
+    ) internal {
+        bridge.source.selectFork();
+        _relayComposeMessages(bridge.sourceCrossChainMessenger, value);
+
+        if (!switchToSourceFork) {
+            bridge.destination.selectFork();
+        }
+    }
+
+    function _relayComposeMessages(address endpoint, uint256 value) private {
+        Vm.Log[] memory logs = RecordedLogs.getLogs();
+        for (uint256 i = 0; i < logs.length; i++) {
+            Vm.Log memory log = logs[i];
+            if (log.topics[0] != COMPOSE_SENT_TOPIC || log.emitter != endpoint) continue;
+
+            (address from, address to, bytes32 guid, uint16 index, bytes memory message) =
+                abi.decode(log.data, (address, address, bytes32, uint16, bytes));
+
+            // Skip if already executed or not yet queued
+            bytes32 queuedHash = IEndpoint(endpoint).composeQueue(from, to, guid, index);
+            if (queuedHash == bytes32(0) || queuedHash == bytes32(uint256(1))) continue;
+
+            IEndpoint(endpoint).lzCompose{ value: value }(from, to, guid, index, message, "");
         }
     }
 

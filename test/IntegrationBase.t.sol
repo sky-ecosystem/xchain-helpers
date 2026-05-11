@@ -11,7 +11,7 @@ contract MessageOrdering {
     address   public receiver;
     uint256[] public messages;
 
-    function push(uint256 messageId) external {
+    function push(uint256 messageId) external payable {
         // Null receiver means there is no code for this path so we ignore the check
         require(receiver == address(0) || msg.sender == receiver, "only-receiver");
 
