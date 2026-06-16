@@ -23,7 +23,7 @@ library ArbitrumForwarder {
 
     address constant internal L1_CROSS_DOMAIN_ARBITRUM_ONE    = 0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f;
     address constant internal L1_CROSS_DOMAIN_ARBITRUM_NOVA   = 0xc4448b71118c9071Bcb9734A0EAc55D18A153949;
-    address constant internal L1_CROSS_DOMAIN_ROBINHOOD_CHAIN = 0x59014B601E530494665888E73113734222457046;  // TODO: add the correct address
+    address constant internal L1_CROSS_DOMAIN_ROBINHOOD_CHAIN = 0x59014b601E530494665888e73113734222457046;  // TODO: add the correct address
     address constant internal L2_CROSS_DOMAIN                 = 0x0000000000000000000000000000000000000064;
 
     function sendMessageL1toL2(
