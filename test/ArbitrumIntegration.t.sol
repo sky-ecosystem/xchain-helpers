@@ -39,6 +39,16 @@ contract ArbitrumIntegrationTest is IntegrationBaseTest {
         runCrossChainTests(getChain("arbitrum_nova").createFork());
     }
 
+    function test_robinhoodChain() public {
+        setChain("robinhood_chain", ChainData({
+            name: "Robinhood Chain",
+            rpcUrl: vm.envString("ROBINHOOD_CHAIN_RPC_URL"),
+            chainId: 4663
+        }));
+
+        runCrossChainTests(getChain("robinhood_chain").createFork());
+    }
+
     function initSourceReceiver() internal override pure returns (address) {
         return address(0);
     }
