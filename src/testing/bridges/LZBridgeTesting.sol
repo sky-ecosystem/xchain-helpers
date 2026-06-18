@@ -142,7 +142,7 @@ library LZBridgeTesting {
         bool           switchToDestinationFork,
         address        sender,
         address        receiver,
-        uint256        value // for simplicity, we pass value explicitly rather than decoding it from the LZ options
+        uint256        value // for simplicity, we pass `value` explicitly rather than decoding it from the LZ options
     ) internal {
         bridge.destination.selectFork();
 
