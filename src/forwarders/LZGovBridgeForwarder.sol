@@ -34,7 +34,7 @@ library LZGovBridgeForwarder {
     function quote(
         address govOapp,
         uint32  dstEid,
-        address dstTarget,
+        address dstTarget, // Typically the receiver contract
         bytes memory message,
         bytes memory extraOptions,
         bool payInLzToken

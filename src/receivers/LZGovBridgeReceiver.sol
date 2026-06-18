@@ -28,12 +28,12 @@ contract LZGovBridgeReceiver {
     constructor(
         address _govOappReceiver,
         uint32  _srcEid,
-        address _srcAuthority,
+        address _srcAuthority, // Expected source-chain caller of the govOapp's sendTx
         address _target
     ) {
         govOappReceiver = _govOappReceiver;
         srcEid          = _srcEid;
-        srcAuthority    = _srcAuthority; // The forwarder on the calling side
+        srcAuthority    = _srcAuthority;
         target          = _target;
     }
 

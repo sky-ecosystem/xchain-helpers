@@ -14,8 +14,7 @@ import { LZBridgeTesting }      from "src/testing/bridges/LZBridgeTesting.sol";
 import { LZGovBridgeForwarder, MessagingFee } from "src/forwarders/LZGovBridgeForwarder.sol";
 import { LZGovBridgeReceiver }                from "src/receivers/LZGovBridgeReceiver.sol";
 
-import { GovernanceOAppReceiverMock } from "test/mocks/lz/GovernanceOAppReceiverMock.sol";
-import { MessageOrdering }           from "test/IntegrationBase.t.sol";
+import { MessageOrdering } from "test/IntegrationBase.t.sol";
 
 import { IChainLog, IGovOappSender } from "test/LZGovBridgeIntegration.t.sol";
 
@@ -37,11 +36,11 @@ contract LZGovBridgeIntegrationTestWithLZToken is Test {
     using LZBridgeTesting for *;
     using OptionsBuilder  for bytes;
 
-    uint32  constant ENDPOINT_ID_BASE  = 30184;
-    uint32  constant ENDPOINT_ID_BNB   = 30102;
-    address constant ENDPOINT_BASE     = 0x1a44076050125825900e736c501f859c50fE728c;
-    address constant ENDPOINT_BNB      = 0x1a44076050125825900e736c501f859c50fE728c;
-    address constant ENDPOINT_ETHEREUM = 0x1a44076050125825900e736c501f859c50fE728c;
+    uint32  constant ENDPOINT_ID_AVALANCHE = 30106;
+    address constant ENDPOINT_ETHEREUM     = 0x1a44076050125825900e736c501f859c50fE728c;
+
+    // Live GovernanceOAppReceiver deployed on Avalanche (peer already configured to LZ_GOV_SENDER).
+    address constant GOV_OAPP_RECEIVER_AVALANCHE = 0x6fdd46947ca6903c8c159d1dF2012Bc7fC5cEeec;
 
     IChainLog constant chainlog = IChainLog(0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F);
 
@@ -59,14 +58,12 @@ contract LZGovBridgeIntegrationTestWithLZToken is Test {
     uint32 sourceEndpointId = LZGovBridgeForwarder.ENDPOINT_ID_ETHEREUM;
     uint32 destinationEndpointId;
 
-    address destinationEndpoint;
-
     address lzToken  = 0x6985884C4392D348587B19cb9eAAf157F13271cd;
     address lzOwner  = 0xBe010A7e3686FdF65E93344ab664D065A0B02478;
     address treasury = 0x5ebB3f2feaA15271101a927869B3A56837e73056;
 
-    GovernanceOAppReceiverMock govOappReceiver;
-    LZGovBridgeReceiver        govBridgeReceiver;
+    address             govOappReceiver;
+    LZGovBridgeReceiver govBridgeReceiver;
 
     function setUp() public {
         source = getChain("mainnet").createFork();
@@ -81,36 +78,27 @@ contract LZGovBridgeIntegrationTestWithLZToken is Test {
         vm.stopPrank();
     }
 
-    function test_base() public {
-        destinationEndpointId = ENDPOINT_ID_BASE;
-        destinationEndpoint   = ENDPOINT_BASE;
+    // Runs against the live GovernanceOAppReceiver deployed on Avalanche. Forks at latest, so it
+    // depends on the receiver's on-chain peer remaining configured to the GovernanceOAppSender.
+    function test_avalanche() public {
+        destinationEndpointId = ENDPOINT_ID_AVALANCHE;
 
-        _runGovBridgeTest(getChain("base").createFork());
+        _runGovBridgeTest(getChain("avalanche").createFork(), GOV_OAPP_RECEIVER_AVALANCHE);
     }
 
-    function test_binance() public {
-        destinationEndpointId = ENDPOINT_ID_BNB;
-        destinationEndpoint   = ENDPOINT_BNB;
-
-        _runGovBridgeTest(getChain("bnb_smart_chain").createFork());
-    }
-
-    function _runGovBridgeTest(Domain memory _destination) internal {
+    function _runGovBridgeTest(Domain memory _destination, address _govOappReceiver) internal {
         destination = _destination;
 
         bridge = LZBridgeTesting.createLZBridge(source, destination);
 
+        // Use the live GovernanceOAppReceiver as-is (peer already points at govOappSender).
+        govOappReceiver = _govOappReceiver;
+
         // Deploy destination contracts
         destination.selectFork();
         moDestination = new MessageOrdering();
-        govOappReceiver = new GovernanceOAppReceiverMock(
-            sourceEndpointId,
-            bytes32(uint256(uint160(govOappSender))),
-            destinationEndpoint,
-            address(this)
-        );
         govBridgeReceiver = new LZGovBridgeReceiver(
-            address(govOappReceiver),
+            govOappReceiver,
             sourceEndpointId,
             address(this),
             address(moDestination)

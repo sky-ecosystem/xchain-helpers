@@ -5,7 +5,6 @@ import "forge-std/Test.sol";
 
 import { TargetContractMock }         from "test/mocks/TargetContractMock.sol";
 import { GovernanceOAppReceiverMock } from "test/mocks/lz/GovernanceOAppReceiverMock.sol";
-import { EndpointMock }               from "test/mocks/lz/EndpointMock.sol";
 import { LZGovBridgeReceiver }        from "src/receivers/LZGovBridgeReceiver.sol";
 
 contract LZGovBridgeReceiverTest is Test {
@@ -21,12 +20,7 @@ contract LZGovBridgeReceiverTest is Test {
 
     function setUp() public {
         target          = new TargetContractMock();
-        govOappReceiver = new GovernanceOAppReceiverMock(
-            srcEid,
-            bytes32(uint256(uint160(srcAuthority))),
-            address(new EndpointMock()),
-            address(this)
-        );
+        govOappReceiver = new GovernanceOAppReceiverMock();
 
         receiver = new LZGovBridgeReceiver(
             address(govOappReceiver),
