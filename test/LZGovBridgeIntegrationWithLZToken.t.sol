@@ -39,6 +39,9 @@ contract LZGovBridgeIntegrationTestWithLZToken is Test {
     uint32  constant ENDPOINT_ID_AVALANCHE = 30106;
     address constant ENDPOINT_ETHEREUM     = 0x1a44076050125825900e736c501f859c50fE728c;
 
+    // LZ mainnet send library (SendUln302) - the lzToken protocol fee accrues here.
+    address constant SEND_ULN_302 = 0xbB2Ea70C9E858123480642Cf96acbcCE1372dCe1;
+
     // Live GovernanceOAppReceiver deployed on Avalanche (peer already configured to LZ_GOV_SENDER).
     address constant GOV_OAPP_RECEIVER_AVALANCHE = 0x6fdd46947ca6903c8c159d1dF2012Bc7fC5cEeec;
 
@@ -148,6 +151,9 @@ contract LZGovBridgeIntegrationTestWithLZToken is Test {
         vm.deal(address(this), fee.nativeFee);
         deal(lzToken, address(this), fee.lzTokenFee);
 
+        uint256 sendLibLzBefore  = IERC20(lzToken).balanceOf(SEND_ULN_302);
+        uint256 sendLibEthBefore = SEND_ULN_302.balance;
+
         LZGovBridgeForwarder.sendMessage(
             govOappSender,
             destinationEndpointId,
@@ -159,9 +165,14 @@ contract LZGovBridgeIntegrationTestWithLZToken is Test {
             lzToken
         );
 
-        // LZ token and ETH spent
-        assertLt(IERC20(lzToken).balanceOf(address(this)), fee.lzTokenFee);
-        assertLt(address(this).balance,                     fee.nativeFee);
+        // The full LZ token and ETH fees were pulled from the payer.
+        assertEq(IERC20(lzToken).balanceOf(address(this)), 0);
+        assertEq(address(this).balance,                    0);
+
+        // Both fees landed in the LZ send library (SendUln302): the lzToken protocol fee, and the
+        // native fee from which the workers (executor + DVNs) are paid.
+        assertEq(IERC20(lzToken).balanceOf(SEND_ULN_302) - sendLibLzBefore, fee.lzTokenFee);
+        assertEq(SEND_ULN_302.balance                    - sendLibEthBefore, fee.nativeFee);
     }
 
 }
