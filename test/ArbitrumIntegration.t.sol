@@ -7,6 +7,10 @@ import { ArbitrumBridgeTesting } from "src/testing/bridges/ArbitrumBridgeTesting
 import { ArbitrumForwarder }     from "src/forwarders/ArbitrumForwarder.sol";
 import { ArbitrumReceiver }      from "src/receivers/ArbitrumReceiver.sol";
 
+interface IInbox {
+    function setAllowList(address[] calldata accounts, bool[] calldata allowed) external;
+}
+
 contract ArbitrumIntegrationTest is IntegrationBaseTest {
 
     using ArbitrumBridgeTesting for *;
@@ -45,6 +49,17 @@ contract ArbitrumIntegrationTest is IntegrationBaseTest {
             rpcUrl: vm.envString("ROBINHOOD_CHAIN_RPC_URL"),
             chainId: 4663
         }));
+
+        address inbox = 0x1A07cc4BD17E0118BdB54D70990D2158AbAD7a2D;
+
+        address[] memory accounts = new address[](1);
+        accounts[0] = sourceAuthority;
+
+        bool[] memory allowed = new bool[](1);
+        allowed[0] = true;
+
+        vm.prank(0x552603b4bc1f5E896AF2854548D6380f45f1B4bf);
+        IInbox(inbox).setAllowList(accounts, allowed);
 
         runCrossChainTests(getChain("robinhood_chain").createFork());
     }
