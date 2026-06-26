@@ -108,21 +108,16 @@ contract LZGovBridgeIntegrationTestWithLZToken is Test {
         );
         moDestination.setReceiver(address(govBridgeReceiver));
 
-        // Configure the GovernanceOAppSender: set peer and grant permission
+        // Peer is already configured on-chain; only grant the per-caller permission.
         source.selectFork();
         address govOwner = IGovOappSender(govOappSender).owner();
-        vm.startPrank(govOwner);
-        IGovOappSender(govOappSender).setPeer(
-            destinationEndpointId,
-            bytes32(uint256(uint160(address(govOappReceiver))))
-        );
+        vm.prank(govOwner);
         IGovOappSender(govOappSender).setCanCallTarget(
             address(this),
             destinationEndpointId,
             bytes32(uint256(uint160(address(govBridgeReceiver)))),
             true
         );
-        vm.stopPrank();
 
         // Send message with LZ token payment
         _sendGovBridgeMessage(abi.encodeCall(MessageOrdering.push, (1)));
