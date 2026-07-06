@@ -32,7 +32,7 @@ library OptimismBridgeTesting {
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     bytes32 private constant SENT_MESSAGE_TOPIC = keccak256("SentMessage(address,address,bytes,uint256,uint256)");
-    
+
     function createNativeBridge(Domain memory ethereum, Domain memory optimismInstance) internal returns (Bridge memory bridge) {
         (
             address sourceCrossChainMessenger,
@@ -69,6 +69,8 @@ library OptimismBridgeTesting {
             sourceCrossChainMessenger = OptimismForwarder.L1_CROSS_DOMAIN_WORLD_CHAIN;
         } else if (name == keccak256("unichain")) {
             sourceCrossChainMessenger = OptimismForwarder.L1_CROSS_DOMAIN_UNICHAIN;
+        } else if (name == keccak256("xlayer")) {
+            sourceCrossChainMessenger = OptimismForwarder.L1_CROSS_DOMAIN_XLAYER;
         } else {
             revert("Unsupported destination chain");
         }
