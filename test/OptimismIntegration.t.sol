@@ -65,6 +65,15 @@ contract OptimismIntegrationTest is IntegrationBaseTest {
         runCrossChainTests(getChain("unichain").createFork());
     }
 
+    function test_xlayer() public {
+        setChain("xlayer", ChainData({
+            name: "XLayer",
+            rpcUrl: "https://rpc.xlayer.tech",
+            chainId: 196
+        }));
+        runCrossChainTests(getChain("xlayer").createFork());
+    }
+
     function initSourceReceiver() internal override pure returns (address) {
         return address(0);
     }
