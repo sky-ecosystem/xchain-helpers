@@ -46,7 +46,7 @@ contract ArbitrumIntegrationTest is IntegrationBaseTest {
     function test_robinhoodChain() public {
         setChain("robinhood_chain", ChainData({
             name: "Robinhood Chain",
-            rpcUrl: vm.envString("ROBINHOOD_CHAIN_RPC_URL"),
+            rpcUrl: vm.envString("RH_RPC_URL"),
             chainId: 4663
         }));
 
