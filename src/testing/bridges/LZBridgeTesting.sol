@@ -99,6 +99,8 @@ library LZBridgeTesting {
             return LZForwarder.ENDPOINT_BNB;
         } else if (name == keccak256("avalanche")) {
             return LZForwarder.ENDPOINT_AVALANCHE;
+        } else if (name == keccak256("arbitrum_one")) {
+            return LZForwarder.ENDPOINT_ARBITRUM;
         } else {
             revert("Unsupported chain");
         }
@@ -114,6 +116,8 @@ library LZBridgeTesting {
             return LZForwarder.RECEIVE_LIBRARY_BNB;
         } else if (name == keccak256("avalanche")) {
             return LZForwarder.RECEIVE_LIBRARY_AVALANCHE;
+        } else if (name == keccak256("arbitrum_one")) {
+            return LZForwarder.RECEIVE_LIBRARY_ARBITRUM;
         } else {
             revert("Unsupported chain");
         }

@@ -11,7 +11,8 @@ library OptimismForwarder {
     address constant internal L1_CROSS_DOMAIN_OPTIMISM    = 0x25ace71c97B33Cc4729CF772ae268934F7ab5fA1;
     address constant internal L1_CROSS_DOMAIN_UNICHAIN    = 0x9A3D64E386C18Cb1d6d5179a9596A4B5736e98A6;
     address constant internal L1_CROSS_DOMAIN_WORLD_CHAIN = 0xf931a81D18B1766d15695ffc7c1920a62b7e710a;
-    
+    address constant internal L1_CROSS_DOMAIN_XLAYER      = 0xF94B553F3602a03931e5D10CaB343C0968D793e3;
+
     address constant internal L2_CROSS_DOMAIN             = 0x4200000000000000000000000000000000000007;
 
     function sendMessageL1toL2(
@@ -38,5 +39,5 @@ library OptimismForwarder {
             gasLimit
         );
     }
-    
+
 }
