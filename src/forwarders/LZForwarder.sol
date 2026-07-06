@@ -40,16 +40,19 @@ library LZForwarder {
 
     error LzTokenUnavailable();
 
+    uint32 public constant ENDPOINT_ID_ARBITRUM  = 30110;
     uint32 public constant ENDPOINT_ID_AVALANCHE = 30106;
     uint32 public constant ENDPOINT_ID_BASE      = 30184;
     uint32 public constant ENDPOINT_ID_BNB       = 30102;
     uint32 public constant ENDPOINT_ID_ETHEREUM  = 30101;
 
+    address public constant ENDPOINT_ARBITRUM  = 0x1a44076050125825900e736c501f859c50fE728c;
     address public constant ENDPOINT_AVALANCHE = 0x1a44076050125825900e736c501f859c50fE728c;
     address public constant ENDPOINT_BASE      = 0x1a44076050125825900e736c501f859c50fE728c;
     address public constant ENDPOINT_BNB       = 0x1a44076050125825900e736c501f859c50fE728c;
     address public constant ENDPOINT_ETHEREUM  = 0x1a44076050125825900e736c501f859c50fE728c;
 
+    address public constant RECEIVE_LIBRARY_ARBITRUM  = 0x7B9E184e07a6EE1aC23eAe0fe8D6Be2f663f05e6;
     address public constant RECEIVE_LIBRARY_AVALANCHE = 0xbf3521d309642FA9B1c91A08609505BA09752c61;
     address public constant RECEIVE_LIBRARY_BASE      = 0xc70AB6f32772f59fBfc23889Caf4Ba3376C84bAf;
     address public constant RECEIVE_LIBRARY_BNB       = 0xB217266c3A98C8B2709Ee26836C98cf12f6cCEC1;
