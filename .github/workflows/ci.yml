@@ -43,6 +43,7 @@ jobs:
           POLYGON_RPC_URL: ${{secrets.POLYGON_RPC_URL}}
           WORLD_CHAIN_RPC_URL: ${{secrets.WORLD_CHAIN_RPC_URL}}
           UNICHAIN_RPC_URL: ${{secrets.UNICHAIN_RPC_URL}}
+          RH_RPC_URL: ${{secrets.RH_RPC_URL}}
         run: FOUNDRY_PROFILE=ci forge test
 
   coverage:
@@ -64,6 +65,7 @@ jobs:
           POLYGON_RPC_URL: ${{secrets.POLYGON_RPC_URL}}
           WORLD_CHAIN_RPC_URL: ${{secrets.WORLD_CHAIN_RPC_URL}}
           UNICHAIN_RPC_URL: ${{secrets.UNICHAIN_RPC_URL}}
+          RH_RPC_URL: ${{secrets.RH_RPC_URL}}
         run: forge coverage --report summary --report lcov
 
       # To ignore coverage for certain directories modify the paths in this step as needed. The
