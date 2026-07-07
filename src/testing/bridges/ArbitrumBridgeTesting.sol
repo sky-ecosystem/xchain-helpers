@@ -85,6 +85,8 @@ library ArbitrumBridgeTesting {
             sourceCrossChainMessenger = ArbitrumForwarder.L1_CROSS_DOMAIN_ARBITRUM_ONE;
         } else if (name == keccak256("arbitrum_nova")) {
             sourceCrossChainMessenger = ArbitrumForwarder.L1_CROSS_DOMAIN_ARBITRUM_NOVA;
+        } else if (name == keccak256("robinhood_chain")) {
+            sourceCrossChainMessenger = ArbitrumForwarder.L1_CROSS_DOMAIN_ROBINHOOD_CHAIN;
         } else {
             revert("Unsupported destination chain");
         }

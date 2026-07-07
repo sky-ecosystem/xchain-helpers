@@ -7,6 +7,10 @@ import { ArbitrumBridgeTesting } from "src/testing/bridges/ArbitrumBridgeTesting
 import { ArbitrumForwarder }     from "src/forwarders/ArbitrumForwarder.sol";
 import { ArbitrumReceiver }      from "src/receivers/ArbitrumReceiver.sol";
 
+interface IInbox {
+    function setAllowList(address[] calldata accounts, bool[] calldata allowed) external;
+}
+
 contract ArbitrumIntegrationTest is IntegrationBaseTest {
 
     using ArbitrumBridgeTesting for *;
@@ -37,6 +41,16 @@ contract ArbitrumIntegrationTest is IntegrationBaseTest {
 
     function test_arbitrumNova() public {
         runCrossChainTests(getChain("arbitrum_nova").createFork());
+    }
+
+    function test_robinhoodChain() public {
+        setChain("robinhood_chain", ChainData({
+            name: "Robinhood Chain",
+            rpcUrl: vm.envString("RH_RPC_URL"),
+            chainId: 4663
+        }));
+
+        runCrossChainTests(getChain("robinhood_chain").createFork());
     }
 
     function initSourceReceiver() internal override pure returns (address) {
