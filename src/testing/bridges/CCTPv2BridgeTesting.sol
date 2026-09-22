@@ -41,40 +41,14 @@ library CCTPv2BridgeTesting {
 
         if (name == keccak256("mainnet")) {
             return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_ETHEREUM;
-        } else if (name == keccak256("avalanche")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_AVALANCHE;
         } else if (name == keccak256("optimism")) {
             return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_OPTIMISM;
         } else if (name == keccak256("arbitrum_one")) {
             return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_ARBITRUM_ONE;
         } else if (name == keccak256("base")) {
             return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_BASE;
-        } else if (name == keccak256("polygon")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_POLYGON_POS;
         } else if (name == keccak256("unichain")) {
             return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_UNICHAIN;
-        } else if (name == keccak256("linea")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_LINEA;
-        } else if (name == keccak256("codex")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_CODEX;
-        } else if (name == keccak256("sonic")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_SONIC;
-        } else if (name == keccak256("world_chain")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_WORLDCHAIN;
-        } else if (name == keccak256("sei")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_SEI;
-        } else if (name == keccak256("bnb_smart_chain")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_BSC;
-        } else if (name == keccak256("xdc")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_XDC;
-        } else if (name == keccak256("hyper")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_HYPEREVM;
-        } else if (name == keccak256("ink")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_INK;
-        } else if (name == keccak256("plume")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_PLUME;
-        } else if (name == keccak256("solana")) { // non-EVM, listed for completeness
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_SOLANA;
         } else {
             revert("Unsupported chain");
         }

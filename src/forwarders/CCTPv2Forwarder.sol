@@ -14,51 +14,24 @@ interface IMessageTransmitterV2 {
 library CCTPv2Forwarder {
 
     address internal constant MESSAGE_TRANSMITTER_CIRCLE_ETHEREUM     = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_AVALANCHE    = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
     address internal constant MESSAGE_TRANSMITTER_CIRCLE_OPTIMISM     = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
     address internal constant MESSAGE_TRANSMITTER_CIRCLE_ARBITRUM_ONE = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_SOLANA       = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64; // non-EVM, listed for completeness
     address internal constant MESSAGE_TRANSMITTER_CIRCLE_BASE         = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_POLYGON_POS  = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
     address internal constant MESSAGE_TRANSMITTER_CIRCLE_UNICHAIN     = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_LINEA        = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_CODEX        = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_SONIC        = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_WORLDCHAIN   = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_SEI          = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_BSC          = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_XDC          = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_HYPEREVM     = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_INK          = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
-    address internal constant MESSAGE_TRANSMITTER_CIRCLE_PLUME        = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
 
     uint32 internal constant DOMAIN_ID_CIRCLE_ETHEREUM     = 0;
-    uint32 internal constant DOMAIN_ID_CIRCLE_AVALANCHE    = 1;
     uint32 internal constant DOMAIN_ID_CIRCLE_OPTIMISM     = 2;
     uint32 internal constant DOMAIN_ID_CIRCLE_ARBITRUM_ONE = 3;
-    uint32 internal constant DOMAIN_ID_CIRCLE_SOLANA       = 5; // non-EVM, listed for completeness
     uint32 internal constant DOMAIN_ID_CIRCLE_BASE         = 6;
-    uint32 internal constant DOMAIN_ID_CIRCLE_POLYGON_POS  = 7;
-    uint32 internal constant DOMAIN_ID_CIRCLE_UNICHAIN     = 10;
-    uint32 internal constant DOMAIN_ID_CIRCLE_LINEA        = 11;
-    uint32 internal constant DOMAIN_ID_CIRCLE_CODEX        = 12;
-    uint32 internal constant DOMAIN_ID_CIRCLE_SONIC        = 13;
-    uint32 internal constant DOMAIN_ID_CIRCLE_WORLDCHAIN   = 14;
-    uint32 internal constant DOMAIN_ID_CIRCLE_SEI          = 16;
-    uint32 internal constant DOMAIN_ID_CIRCLE_BSC          = 17;
-    uint32 internal constant DOMAIN_ID_CIRCLE_XDC          = 18;
-    uint32 internal constant DOMAIN_ID_CIRCLE_HYPEREVM     = 19;
-    uint32 internal constant DOMAIN_ID_CIRCLE_INK          = 21;
-    uint32 internal constant DOMAIN_ID_CIRCLE_PLUME        = 22;
 
     uint32 internal constant V2_MIN_FINALITY_STANDARD = 2_000;
 
     bytes32 internal constant V2_DESTINATION_CALLER_ANY = bytes32(0);
 
     function sendMessage(
-        address messageTransmitter,
-        uint32 destinationDomainId,
-        bytes32 recipient,
+        address      messageTransmitter,
+        uint32       destinationDomainId,
+        bytes32      recipient,
         bytes memory messageBody
     ) internal {
         IMessageTransmitterV2(messageTransmitter).sendMessage(
@@ -71,9 +44,9 @@ library CCTPv2Forwarder {
     }
 
     function sendMessage(
-        address messageTransmitter,
-        uint32 destinationDomainId,
-        address recipient,
+        address      messageTransmitter,
+        uint32       destinationDomainId,
+        address      recipient,
         bytes memory messageBody
     ) internal {
         sendMessage(
