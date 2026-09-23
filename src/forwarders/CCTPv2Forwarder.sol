@@ -23,6 +23,7 @@ library CCTPv2Forwarder {
     uint32 internal constant DOMAIN_ID_CIRCLE_OPTIMISM     = 2;
     uint32 internal constant DOMAIN_ID_CIRCLE_ARBITRUM_ONE = 3;
     uint32 internal constant DOMAIN_ID_CIRCLE_BASE         = 6;
+    uint32 internal constant DOMAIN_ID_CIRCLE_UNICHAIN     = 10;
 
     uint32 internal constant V2_MIN_FINALITY_STANDARD = 2_000;
 
