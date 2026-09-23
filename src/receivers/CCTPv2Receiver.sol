@@ -30,10 +30,10 @@ contract CCTPv2Receiver {
 
     /// @notice Finalized (standard finality) messages are accepted.
     function handleReceiveFinalizedMessage(
-        uint32  remoteDomain,
-        bytes32 sender,
-        uint32  /*finalityThresholdExecuted*/,
-        bytes   memory messageBody
+        uint32       remoteDomain,
+        bytes32      sender,
+        uint32       finalityThresholdExecuted,
+        bytes memory messageBody
     ) external returns (bool) {
         require(msg.sender   == destinationMessenger, "CCTPv2Receiver/invalid-sender");
         require(remoteDomain == sourceDomainId,       "CCTPv2Receiver/invalid-sourceDomain");
@@ -46,10 +46,10 @@ contract CCTPv2Receiver {
 
     /// @notice Unfinalized (fast) messages are rejected by default.
     function handleReceiveUnfinalizedMessage(
-        uint32  /*remoteDomain*/,
-        bytes32 /*sender*/,
-        uint32  /*finalityThresholdExecuted*/,
-        bytes   memory /*messageBody*/
+        uint32       remoteDomain,
+        bytes32      sender,
+        uint32       finalityThresholdExecuted,
+        bytes memory messageBody
     ) external pure returns (bool) {
         revert("CCTPv2Receiver/unfinalized-messages-not-accepted");
     }

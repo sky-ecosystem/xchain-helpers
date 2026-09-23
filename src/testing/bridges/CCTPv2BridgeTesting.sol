@@ -16,23 +16,23 @@ interface IMessengerV2 {
 
 library CCTPv2BridgeTesting {
 
-    bytes32 private constant SENT_MESSAGE_TOPIC = keccak256("MessageSent(bytes)");
-
     using DomainHelpers for *;
     using RecordedLogs  for *;
 
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
+    bytes32 private constant SENT_MESSAGE_TOPIC = keccak256("MessageSent(bytes)");
+
     function createCircleBridge(Domain memory source, Domain memory destination) internal returns (Bridge memory bridge) {
         return init(Bridge({
-            bridgeType:                     BridgeType.CCTP_V2,
-            source:                         source,
-            destination:                    destination,
-            sourceCrossChainMessenger:      getCircleMessengerFromChainAlias(source.chain.chainAlias),
-            destinationCrossChainMessenger: getCircleMessengerFromChainAlias(destination.chain.chainAlias),
-            lastSourceLogIndex:             0,
-            lastDestinationLogIndex:        0,
-            extraData:                      ""
+            bridgeType                     : BridgeType.CCTP_V2,
+            source                         : source,
+            destination                    : destination,
+            sourceCrossChainMessenger      : getCircleMessengerFromChainAlias(source.chain.chainAlias),
+            destinationCrossChainMessenger : getCircleMessengerFromChainAlias(destination.chain.chainAlias),
+            lastSourceLogIndex             : 0,
+            lastDestinationLogIndex        : 0,
+            extraData                      : ""
         }));
     }
 
@@ -59,7 +59,7 @@ library CCTPv2BridgeTesting {
         bridge.destination.selectFork();
         vm.store(
             bridge.destinationCrossChainMessenger,
-            bytes32(uint256(4)),
+            bytes32(uint256(4)),  // `signatureThreshold` slot
             0
         );
         bridge.source.selectFork();
