@@ -12,10 +12,10 @@ contract DummyReceiver {
     bytes public message;
 
     function handleReceiveFinalizedMessage(
-        uint32       /*remoteDomain*/,
-        bytes32      /*sender*/,
-        uint32       /*finalityThresholdExecuted*/,
-        bytes memory messageBody
+        uint32         /*remoteDomain*/,
+        bytes32        /*sender*/,
+        uint32         /*finalityThresholdExecuted*/,
+        bytes   memory messageBody
     ) external returns (bool) {
         message = messageBody;
         return true;

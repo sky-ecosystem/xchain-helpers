@@ -2,13 +2,15 @@
 pragma solidity ^0.8.0;
 
 interface IMessageTransmitterV2 {
+
     function sendMessage(
-        uint32 destinationDomain,
-        bytes32 recipient,
-        bytes32 destinationCaller,    // 0x0 = anyone can relay
-        uint32 minFinalityThreshold,  // 2000 = standard (finalized), 1000 = fast (unfinalized)
-        bytes calldata messageBody
+        uint32           destinationDomain,
+        bytes32          recipient,
+        bytes32          destinationCaller,     // 0x0 = anyone can relay
+        uint32           minFinalityThreshold,  // 2000 = standard (finalized), 1000 = fast (unfinalized)
+        bytes   calldata messageBody
     ) external;
+
 }
 
 library CCTPv2Forwarder {
@@ -30,10 +32,10 @@ library CCTPv2Forwarder {
     bytes32 internal constant DESTINATION_CALLER_ANY = bytes32(0);
 
     function sendMessage(
-        address      messageTransmitter,
-        uint32       destinationDomainId,
-        bytes32      recipient,
-        bytes memory messageBody
+        address        messageTransmitter,
+        uint32         destinationDomainId,
+        bytes32        recipient,
+        bytes   memory messageBody
     ) internal {
         IMessageTransmitterV2(messageTransmitter).sendMessage(
             destinationDomainId,
@@ -45,10 +47,10 @@ library CCTPv2Forwarder {
     }
 
     function sendMessage(
-        address      messageTransmitter,
-        uint32       destinationDomainId,
-        address      recipient,
-        bytes memory messageBody
+        address        messageTransmitter,
+        uint32         destinationDomainId,
+        address        recipient,
+        bytes   memory messageBody
     ) internal {
         sendMessage(
             messageTransmitter,
@@ -57,4 +59,5 @@ library CCTPv2Forwarder {
             messageBody
         );
     }
+
 }
