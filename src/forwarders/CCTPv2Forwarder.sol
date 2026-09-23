@@ -25,9 +25,9 @@ library CCTPv2Forwarder {
     uint32 internal constant DOMAIN_ID_CIRCLE_BASE         = 6;
     uint32 internal constant DOMAIN_ID_CIRCLE_UNICHAIN     = 10;
 
-    uint32 internal constant V2_MIN_FINALITY_STANDARD = 2_000;
+    uint32 internal constant MIN_FINALITY_STANDARD = 2_000;
 
-    bytes32 internal constant V2_DESTINATION_CALLER_ANY = bytes32(0);
+    bytes32 internal constant DESTINATION_CALLER_ANY = bytes32(0);
 
     function sendMessage(
         address      messageTransmitter,
@@ -38,8 +38,8 @@ library CCTPv2Forwarder {
         IMessageTransmitterV2(messageTransmitter).sendMessage(
             destinationDomainId,
             recipient,
-            V2_DESTINATION_CALLER_ANY,
-            V2_MIN_FINALITY_STANDARD,
+            DESTINATION_CALLER_ANY,
+            MIN_FINALITY_STANDARD,
             messageBody
         );
     }

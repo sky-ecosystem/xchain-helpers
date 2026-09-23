@@ -7,8 +7,6 @@ import { CCTPv2BridgeTesting } from "src/testing/bridges/CCTPv2BridgeTesting.sol
 import { CCTPv2Forwarder }     from "src/forwarders/CCTPv2Forwarder.sol";
 import { CCTPv2Receiver }      from "src/receivers/CCTPv2Receiver.sol";
 
-import { RecordedLogs } from "src/testing/utils/RecordedLogs.sol";
-
 contract DummyReceiver {
 
     bytes public message;
@@ -53,7 +51,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         CCTPv2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
             remoteDomain              : sourceDomainId,
             sender                    : _addressToCctpBytes32(sourceAuthority),
-            finalityThresholdExecuted : 0,
+            finalityThresholdExecuted : 2000,
             messageBody               : abi.encodeCall(MessageOrdering.push, (1))
         });
     }
@@ -69,7 +67,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         CCTPv2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
             remoteDomain              : 1,
             sender                    : _addressToCctpBytes32(sourceAuthority),
-            finalityThresholdExecuted : 0,
+            finalityThresholdExecuted : 2000,
             messageBody               : abi.encodeCall(MessageOrdering.push, (1))
         });
     }
@@ -83,9 +81,9 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         vm.prank(bridge.destinationCrossChainMessenger);
         vm.expectRevert("CCTPv2Receiver/invalid-sourceAuthority");
         CCTPv2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
-            remoteDomain              : 0,
+            remoteDomain              : sourceDomainId,
             sender                    : _addressToCctpBytes32(randomAddress),
-            finalityThresholdExecuted : 0,
+            finalityThresholdExecuted : 2000,
             messageBody               : abi.encodeCall(MessageOrdering.push, (1))
         });
     }
@@ -106,6 +104,12 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
     }
 
     function test_unichain() public {
+        setChain("unichain", ChainData({
+            name: "Unichain",
+            rpcUrl: vm.envString("UNICHAIN_RPC_URL"),
+            chainId: 130
+        }));
+
         destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_UNICHAIN;
         runCrossChainTests(getChain("unichain").createFork());
     }

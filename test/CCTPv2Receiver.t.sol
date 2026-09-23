@@ -43,9 +43,9 @@ contract CCTPv2ReceiverTest is Test {
         assertEq(receiver.target(),               address(target));
     }
 
-    function test_receiveUnfinalizedMessage_revert() public {
-        vm.prank(destinationMessenger);
+    function test_handleReceiveUnfinalizedMessage_revert() public {
         vm.expectRevert("CCTPv2Receiver/unfinalized-messages-not-accepted");
+        vm.prank(destinationMessenger);
         receiver.handleReceiveUnfinalizedMessage({
             remoteDomain              : sourceDomainId,
             sender                    : sourceAuthority,
@@ -55,8 +55,8 @@ contract CCTPv2ReceiverTest is Test {
     }
 
     function test_handleReceiveFinalizedMessage_invalidSender() public {
-        vm.prank(randomAddress);
         vm.expectRevert("CCTPv2Receiver/invalid-sender");
+        vm.prank(randomAddress);
         receiver.handleReceiveFinalizedMessage({
             remoteDomain              : sourceDomainId,
             sender                    : sourceAuthority,
@@ -66,8 +66,8 @@ contract CCTPv2ReceiverTest is Test {
     }
 
     function test_handleReceiveFinalizedMessage_invalidSourceChainId() public {
-        vm.prank(destinationMessenger);
         vm.expectRevert("CCTPv2Receiver/invalid-sourceDomain");
+        vm.prank(destinationMessenger);
         receiver.handleReceiveFinalizedMessage({
             remoteDomain              : 2,
             sender                    : sourceAuthority,
@@ -77,8 +77,8 @@ contract CCTPv2ReceiverTest is Test {
     }
 
     function test_handleReceiveFinalizedMessage_invalidSourceAuthority() public {
-        vm.prank(destinationMessenger);
         vm.expectRevert("CCTPv2Receiver/invalid-sourceAuthority");
+        vm.prank(destinationMessenger);
         receiver.handleReceiveFinalizedMessage({
             remoteDomain              : sourceDomainId,
             sender                    : bytes32(uint256(uint160(randomAddress))),
@@ -91,19 +91,20 @@ contract CCTPv2ReceiverTest is Test {
         assertEq(target.count(), 0);
 
         vm.prank(destinationMessenger);
-        receiver.handleReceiveFinalizedMessage({
+        bool success = receiver.handleReceiveFinalizedMessage({
             remoteDomain              : sourceDomainId,
             sender                    : sourceAuthority,
             finalityThresholdExecuted : 0,
             messageBody               : abi.encodeCall(TargetContractMock.increment, ())
         });
 
+        assertEq(success,        true);
         assertEq(target.count(), 1);
     }
 
     function test_handleReceiveFinalizedMessage_revert() public {
-        vm.prank(destinationMessenger);
         vm.expectRevert("TargetContract/error");
+        vm.prank(destinationMessenger);
         receiver.handleReceiveFinalizedMessage({
             remoteDomain              : sourceDomainId,
             sender                    : sourceAuthority,

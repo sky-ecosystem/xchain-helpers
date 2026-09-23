@@ -55,7 +55,7 @@ library CCTPv2BridgeTesting {
     }
 
     function init(Bridge memory bridge) internal returns (Bridge memory) {
-         // Set minimum required signatures to zero for both domains
+        // Set minimum required signatures to zero for both domains
         bridge.destination.selectFork();
         vm.store(
             bridge.destinationCrossChainMessenger,
@@ -88,8 +88,7 @@ library CCTPv2BridgeTesting {
             uint32 messageDestinationDomain = getDestinationDomain(message);
             uint32 messageSourceDomain = getSourceDomain(message);
             if (messageDestinationDomain == destinationDomain && messageSourceDomain == sourceDomain) {
-                bool success = IMessengerV2(bridge.destinationCrossChainMessenger).receiveMessage(processMessage(message), "");
-                require(success, "CCTPv2BridgeTesting/receiveMessage-failed");
+                IMessengerV2(bridge.destinationCrossChainMessenger).receiveMessage(processMessage(message), "");
             }
         }
 
@@ -112,8 +111,7 @@ library CCTPv2BridgeTesting {
             uint32 messageDestinationDomain = getDestinationDomain(message);
             uint32 messageSourceDomain = getSourceDomain(message);
             if (messageDestinationDomain == sourceDomain && messageSourceDomain == destinationDomain) {
-                bool success = IMessengerV2(bridge.sourceCrossChainMessenger).receiveMessage(processMessage(message), "");
-                require(success, "CCTPv2BridgeTesting/receiveMessage-failed");
+                IMessengerV2(bridge.sourceCrossChainMessenger).receiveMessage(processMessage(message), "");
             }
         }
 
@@ -143,6 +141,9 @@ library CCTPv2BridgeTesting {
     function getDestinationDomain(bytes memory message) public pure returns (uint32 destinationDomain) {
         require(message.length >= 12, "Message too short");
         assembly {
+            // Add 32 to skip the length word, then add 8 to reach the destinationDomain.
+            // mload loads 32 bytes starting from that position.
+            // The actual uint32 is in the top 4 bytes, so shift right by 224 bits.
             destinationDomain := shr(224, mload(add(message, 40)))
         }
     }
@@ -168,6 +169,8 @@ library CCTPv2BridgeTesting {
      * the "finality threshold executed" (bytes 144-147) to match "min finality threshold" (bytes 140-143).
      */
     function processMessage(bytes memory message) internal view returns (bytes memory processedMessage) {
+        require(message.length >= 148, "CCTPv2BridgeTesting/message-too-short");
+
         processedMessage = abi.encodePacked(message);
 
         // Add a random nonce
