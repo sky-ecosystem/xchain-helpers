@@ -20,12 +20,14 @@ library CCTPv2Forwarder {
     address internal constant MESSAGE_TRANSMITTER_CIRCLE_ARBITRUM_ONE = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
     address internal constant MESSAGE_TRANSMITTER_CIRCLE_BASE         = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
     address internal constant MESSAGE_TRANSMITTER_CIRCLE_UNICHAIN     = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
+    address internal constant MESSAGE_TRANSMITTER_CIRCLE_XLAYER       = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
 
     uint32 internal constant DOMAIN_ID_CIRCLE_ETHEREUM     = 0;
     uint32 internal constant DOMAIN_ID_CIRCLE_OPTIMISM     = 2;
     uint32 internal constant DOMAIN_ID_CIRCLE_ARBITRUM_ONE = 3;
     uint32 internal constant DOMAIN_ID_CIRCLE_BASE         = 6;
     uint32 internal constant DOMAIN_ID_CIRCLE_UNICHAIN     = 10;
+    uint32 internal constant DOMAIN_ID_CIRCLE_XLAYER       = 37;
 
     uint32 internal constant MIN_FINALITY_STANDARD = 2_000;
 

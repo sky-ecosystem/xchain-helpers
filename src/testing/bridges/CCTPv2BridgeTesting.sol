@@ -49,6 +49,8 @@ library CCTPv2BridgeTesting {
             return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_BASE;
         } else if (name == keccak256("unichain")) {
             return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_UNICHAIN;
+        } else if (name == keccak256("xlayer")) {
+            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_XLAYER;
         } else {
             revert("Unsupported chain");
         }

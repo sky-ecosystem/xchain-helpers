@@ -114,6 +114,17 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         runCrossChainTests(getChain("unichain").createFork());
     }
 
+    function test_xlayer() public {
+        setChain("xlayer", ChainData({
+            name: "XLayer",
+            rpcUrl: "https://rpc.xlayer.tech",
+            chainId: 196
+        }));
+
+        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_XLAYER;
+        runCrossChainTests(getChain("xlayer").createFork());
+    }
+
     function test_multiple() public {
         destination  = getChain("base").createFork();
         destination2 = getChain("arbitrum_one").createFork();
