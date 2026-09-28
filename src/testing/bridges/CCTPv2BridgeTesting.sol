@@ -7,8 +7,6 @@ import { Bridge, BridgeType }    from "../Bridge.sol";
 import { Domain, DomainHelpers } from "../Domain.sol";
 import { RecordedLogs }          from "../utils/RecordedLogs.sol";
 
-import { CCTPv2Forwarder } from "../../forwarders/CCTPv2Forwarder.sol";
-
 interface IMessengerV2 {
     function localDomain() external view returns (uint32);
     function receiveMessage(bytes calldata message, bytes calldata attestation) external returns (bool success);
@@ -22,6 +20,8 @@ library CCTPv2BridgeTesting {
     Vm private constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
     bytes32 private constant SENT_MESSAGE_TOPIC = keccak256("MessageSent(bytes)");
+
+    address internal constant MESSAGE_TRANSMITTER_CIRCLE = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;  // Same address on all chains except EDGE.
 
     function createCircleBridge(Domain memory source, Domain memory destination) internal returns (Bridge memory bridge) {
         return init(Bridge({
@@ -39,21 +39,16 @@ library CCTPv2BridgeTesting {
     function getCircleMessengerFromChainAlias(string memory chainAlias) internal pure returns (address) {
         bytes32 name = keccak256(bytes(chainAlias));
 
-        if (name == keccak256("mainnet")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_ETHEREUM;
-        } else if (name == keccak256("optimism")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_OPTIMISM;
-        } else if (name == keccak256("arbitrum_one")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_ARBITRUM_ONE;
-        } else if (name == keccak256("base")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_BASE;
-        } else if (name == keccak256("unichain")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_UNICHAIN;
-        } else if (name == keccak256("xlayer")) {
-            return CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_XLAYER;
-        } else {
-            revert("Unsupported chain");
-        }
+        if ( 
+            name == keccak256("mainnet")      ||
+            name == keccak256("optimism")     ||
+            name == keccak256("arbitrum_one") ||
+            name == keccak256("base")         ||
+            name == keccak256("unichain")     ||
+            name == keccak256("xlayer")
+        ) return MESSAGE_TRANSMITTER_CIRCLE;
+
+        revert("Unsupported chain");
     }
 
     function init(Bridge memory bridge) internal returns (Bridge memory) {

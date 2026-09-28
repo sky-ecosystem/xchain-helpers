@@ -1,11 +1,63 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity >=0.8.0;
 
+import { Address } from "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
+
 import "./IntegrationBase.t.sol";
 
 import { CCTPv2BridgeTesting } from "src/testing/bridges/CCTPv2BridgeTesting.sol";
-import { CCTPv2Forwarder }     from "src/forwarders/CCTPv2Forwarder.sol";
-import { CCTPv2Receiver }      from "src/receivers/CCTPv2Receiver.sol";
+
+import { CCTPForwarder } from "src/forwarders/CCTPForwarder.sol";
+import { CCTPReceiver }  from "src/receivers/CCTPReceiver.sol";
+
+interface IMessageTransmitterV2 {
+
+    function sendMessage(
+        uint32           destinationDomain,
+        bytes32          recipient,
+        bytes32          destinationCaller,     // 0x0 = anyone can relay
+        uint32           minFinalityThreshold,  // 2000 = standard (finalized), 1000 = fast (unfinalized)
+        bytes   calldata messageBody
+    ) external;
+
+}
+
+library CCTPv2Forwarder {
+
+    uint32 internal constant MIN_FINALITY_STANDARD = 2_000;
+
+    bytes32 internal constant DESTINATION_CALLER_ANY = bytes32(0);
+
+    function sendMessage(
+        address        messageTransmitter,
+        uint32         destinationDomainId,
+        bytes32        recipient,
+        bytes   memory messageBody
+    ) internal {
+        IMessageTransmitterV2(messageTransmitter).sendMessage(
+            destinationDomainId,
+            recipient,
+            DESTINATION_CALLER_ANY,
+            MIN_FINALITY_STANDARD,
+            messageBody
+        );
+    }
+
+    function sendMessage(
+        address        messageTransmitter,
+        uint32         destinationDomainId,
+        address        recipient,
+        bytes   memory messageBody
+    ) internal {
+        sendMessage(
+            messageTransmitter,
+            destinationDomainId,
+            bytes32(uint256(uint160(recipient))),
+            messageBody
+        );
+    }
+
+}
 
 contract DummyReceiver {
 
@@ -23,12 +75,61 @@ contract DummyReceiver {
 
 }
 
+contract CCTPv2Receiver {
+
+    using Address for address;
+
+    address public immutable destinationMessenger;
+    uint32  public immutable sourceDomainId;
+    bytes32 public immutable sourceAuthority;
+    address public immutable target;
+
+    constructor(
+        address _destinationMessenger,
+        uint32  _sourceDomainId,
+        bytes32 _sourceAuthority,
+        address _target
+    ) {
+        destinationMessenger = _destinationMessenger;
+        sourceDomainId       = _sourceDomainId;
+        sourceAuthority      = _sourceAuthority;
+        target               = _target;
+    }
+
+    /// @notice Finalized (standard finality) messages are accepted.
+    function handleReceiveFinalizedMessage(
+        uint32         remoteDomain,
+        bytes32        sender,
+        uint32         finalityThresholdExecuted,
+        bytes   memory messageBody
+    ) external returns (bool) {
+        require(msg.sender   == destinationMessenger, "CCTPv2Receiver/invalid-sender");
+        require(remoteDomain == sourceDomainId,       "CCTPv2Receiver/invalid-sourceDomain");
+        require(sender       == sourceAuthority,      "CCTPv2Receiver/invalid-sourceAuthority");
+
+        target.functionCall(messageBody);
+
+        return true;
+    }
+
+    /// @notice Unfinalized (fast) messages are rejected by default.
+    function handleReceiveUnfinalizedMessage(
+        uint32         remoteDomain,
+        bytes32        sender,
+        uint32         finalityThresholdExecuted,
+        bytes   memory messageBody
+    ) external pure returns (bool) {
+        revert("CCTPv2Receiver/unfinalized-messages-not-accepted");
+    }
+
+}
+
 contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
 
     using CCTPv2BridgeTesting for *;
     using DomainHelpers       for *;
 
-    uint32 sourceDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ETHEREUM;
+    uint32 sourceDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_ETHEREUM;
     uint32 destinationDomainId;
 
     Domain destination2;
@@ -41,7 +142,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
     // Use Arbitrum One for failure tests as the code logic is the same
 
     function test_invalidSender() public {
-        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE;
+        destinationDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE;
         initBaseContracts(getChain("arbitrum_one").createFork());
 
         destination.selectFork();
@@ -57,7 +158,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
     }
 
     function test_invalidSourceDomain() public {
-        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE;
+        destinationDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE;
         initBaseContracts(getChain("arbitrum_one").createFork());
 
         destination.selectFork();
@@ -73,7 +174,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
     }
 
     function test_invalidSourceAuthority() public {
-        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE;
+        destinationDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE;
         initBaseContracts(getChain("arbitrum_one").createFork());
 
         destination.selectFork();
@@ -89,17 +190,17 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
     }
 
     function test_optimism() public {
-        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_OPTIMISM;
+        destinationDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_OPTIMISM;
         runCrossChainTests(getChain("optimism").createFork());
     }
 
     function test_arbitrum_one() public {
-        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE;
+        destinationDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE;
         runCrossChainTests(getChain("arbitrum_one").createFork());
     }
 
     function test_base() public {
-        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_BASE;
+        destinationDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_BASE;
         runCrossChainTests(getChain("base").createFork());
     }
 
@@ -110,18 +211,18 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
             chainId: 130
         }));
 
-        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_UNICHAIN;
+        destinationDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_UNICHAIN;
         runCrossChainTests(getChain("unichain").createFork());
     }
 
     function test_xlayer() public {
         setChain("xlayer", ChainData({
             name: "XLayer",
-            rpcUrl: "https://rpc.xlayer.tech",
+            rpcUrl: vm.envString("XLAYER_RPC_URL"),
             chainId: 196
         }));
 
-        destinationDomainId = CCTPv2Forwarder.DOMAIN_ID_CIRCLE_XLAYER;
+        destinationDomainId = 37;  // XLayer CCTPv2 domain ID
         runCrossChainTests(getChain("xlayer").createFork());
     }
 
@@ -146,14 +247,14 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         source.selectFork();
 
         CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_ETHEREUM,
-            destinationDomainId : CCTPv2Forwarder.DOMAIN_ID_CIRCLE_BASE,
+            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+            destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_BASE,
             recipient           : address(r1),
             messageBody         : abi.encode(1)
         });
         CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_ETHEREUM,
-            destinationDomainId : CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE,
+            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+            destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE,
             recipient           : address(r2),
             messageBody         : abi.encode(2)
         });
@@ -169,22 +270,22 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
 
         destination.selectFork();
         CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_BASE,
-            destinationDomainId : CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
+            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+            destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
             recipient           : address(r0),
             messageBody         : abi.encode(3)
         });
 
         destination2.selectFork();
         CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_ARBITRUM_ONE,
-            destinationDomainId : CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
+            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+            destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
             recipient           : address(r0),
             messageBody         : abi.encode(4)
         });
         CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2Forwarder.MESSAGE_TRANSMITTER_CIRCLE_ARBITRUM_ONE,
-            destinationDomainId : CCTPv2Forwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
+            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+            destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
             recipient           : address(r0),
             messageBody         : abi.encode(5)
         });
