@@ -12,7 +12,7 @@ interface IMessengerV2 {
     function receiveMessage(bytes calldata message, bytes calldata attestation) external returns (bool success);
 }
 
-library CCTPv2BridgeTesting {
+library CCTPV2BridgeTesting {
 
     using DomainHelpers for *;
     using RecordedLogs  for *;
@@ -39,7 +39,7 @@ library CCTPv2BridgeTesting {
     function getCircleMessengerFromChainAlias(string memory chainAlias) internal pure returns (address) {
         bytes32 name = keccak256(bytes(chainAlias));
 
-        if ( 
+        if (
             name == keccak256("mainnet")      ||
             name == keccak256("optimism")     ||
             name == keccak256("arbitrum_one") ||
@@ -166,7 +166,7 @@ library CCTPv2BridgeTesting {
      * the "finality threshold executed" (bytes 144-147) to match "min finality threshold" (bytes 140-143).
      */
     function processMessage(bytes memory message) internal view returns (bytes memory processedMessage) {
-        require(message.length >= 148, "CCTPv2BridgeTesting/message-too-short");
+        require(message.length >= 148, "CCTPV2BridgeTesting/message-too-short");
 
         processedMessage = abi.encodePacked(message);
 

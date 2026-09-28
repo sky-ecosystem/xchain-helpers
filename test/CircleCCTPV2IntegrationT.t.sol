@@ -5,7 +5,7 @@ import { Address } from "../lib/openzeppelin-contracts/contracts/utils/Address.s
 
 import "./IntegrationBase.t.sol";
 
-import { CCTPv2BridgeTesting } from "src/testing/bridges/CCTPv2BridgeTesting.sol";
+import { CCTPV2BridgeTesting } from "src/testing/bridges/CCTPV2BridgeTesting.sol";
 
 import { CCTPForwarder } from "src/forwarders/CCTPForwarder.sol";
 import { CCTPReceiver }  from "src/receivers/CCTPReceiver.sol";
@@ -22,7 +22,7 @@ interface IMessageTransmitterV2 {
 
 }
 
-library CCTPv2Forwarder {
+library CCTPV2Forwarder {
 
     uint32 internal constant MIN_FINALITY_STANDARD = 2_000;
 
@@ -75,7 +75,7 @@ contract DummyReceiver {
 
 }
 
-contract CCTPv2Receiver {
+contract CCTPV2Receiver {
 
     using Address for address;
 
@@ -103,9 +103,9 @@ contract CCTPv2Receiver {
         uint32         finalityThresholdExecuted,
         bytes   memory messageBody
     ) external returns (bool) {
-        require(msg.sender   == destinationMessenger, "CCTPv2Receiver/invalid-sender");
-        require(remoteDomain == sourceDomainId,       "CCTPv2Receiver/invalid-sourceDomain");
-        require(sender       == sourceAuthority,      "CCTPv2Receiver/invalid-sourceAuthority");
+        require(msg.sender   == destinationMessenger, "CCTPV2Receiver/invalid-sender");
+        require(remoteDomain == sourceDomainId,       "CCTPV2Receiver/invalid-sourceDomain");
+        require(sender       == sourceAuthority,      "CCTPV2Receiver/invalid-sourceAuthority");
 
         target.functionCall(messageBody);
 
@@ -119,14 +119,14 @@ contract CCTPv2Receiver {
         uint32         finalityThresholdExecuted,
         bytes   memory messageBody
     ) external pure returns (bool) {
-        revert("CCTPv2Receiver/unfinalized-messages-not-accepted");
+        revert("CCTPV2Receiver/unfinalized-messages-not-accepted");
     }
 
 }
 
-contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
+contract CircleCCTPV2IntegrationTest is IntegrationBaseTest {
 
-    using CCTPv2BridgeTesting for *;
+    using CCTPV2BridgeTesting for *;
     using DomainHelpers       for *;
 
     uint32 sourceDomainId = CCTPForwarder.DOMAIN_ID_CIRCLE_ETHEREUM;
@@ -148,8 +148,8 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         destination.selectFork();
 
         vm.prank(randomAddress);
-        vm.expectRevert("CCTPv2Receiver/invalid-sender");
-        CCTPv2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
+        vm.expectRevert("CCTPV2Receiver/invalid-sender");
+        CCTPV2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
             remoteDomain              : sourceDomainId,
             sender                    : _addressToCctpBytes32(sourceAuthority),
             finalityThresholdExecuted : 2000,
@@ -164,8 +164,8 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         destination.selectFork();
 
         vm.prank(bridge.destinationCrossChainMessenger);
-        vm.expectRevert("CCTPv2Receiver/invalid-sourceDomain");
-        CCTPv2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
+        vm.expectRevert("CCTPV2Receiver/invalid-sourceDomain");
+        CCTPV2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
             remoteDomain              : 1,
             sender                    : _addressToCctpBytes32(sourceAuthority),
             finalityThresholdExecuted : 2000,
@@ -180,8 +180,8 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         destination.selectFork();
 
         vm.prank(bridge.destinationCrossChainMessenger);
-        vm.expectRevert("CCTPv2Receiver/invalid-sourceAuthority");
-        CCTPv2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
+        vm.expectRevert("CCTPV2Receiver/invalid-sourceAuthority");
+        CCTPV2Receiver(destinationReceiver).handleReceiveFinalizedMessage({
             remoteDomain              : sourceDomainId,
             sender                    : _addressToCctpBytes32(randomAddress),
             finalityThresholdExecuted : 2000,
@@ -222,7 +222,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
             chainId: 196
         }));
 
-        destinationDomainId = 37;  // XLayer CCTPv2 domain ID
+        destinationDomainId = 37;  // XLayer CCTPV2 domain ID
         runCrossChainTests(getChain("xlayer").createFork());
     }
 
@@ -241,19 +241,19 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         DummyReceiver r2 = new DummyReceiver();
         assertEq(r2.message().length, 0);
 
-        bridge  = CCTPv2BridgeTesting.createCircleBridge(source, destination);
-        bridge2 = CCTPv2BridgeTesting.createCircleBridge(source, destination2);
+        bridge  = CCTPV2BridgeTesting.createCircleBridge(source, destination);
+        bridge2 = CCTPV2BridgeTesting.createCircleBridge(source, destination2);
 
         source.selectFork();
 
-        CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+        CCTPV2Forwarder.sendMessage({
+            messageTransmitter  : CCTPV2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
             destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_BASE,
             recipient           : address(r1),
             messageBody         : abi.encode(1)
         });
-        CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+        CCTPV2Forwarder.sendMessage({
+            messageTransmitter  : CCTPV2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
             destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_ARBITRUM_ONE,
             recipient           : address(r2),
             messageBody         : abi.encode(2)
@@ -269,22 +269,22 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
         assertEq(r2.message(), abi.encode(2));
 
         destination.selectFork();
-        CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+        CCTPV2Forwarder.sendMessage({
+            messageTransmitter  : CCTPV2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
             destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
             recipient           : address(r0),
             messageBody         : abi.encode(3)
         });
 
         destination2.selectFork();
-        CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+        CCTPV2Forwarder.sendMessage({
+            messageTransmitter  : CCTPV2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
             destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
             recipient           : address(r0),
             messageBody         : abi.encode(4)
         });
-        CCTPv2Forwarder.sendMessage({
-            messageTransmitter  : CCTPv2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
+        CCTPV2Forwarder.sendMessage({
+            messageTransmitter  : CCTPV2BridgeTesting.MESSAGE_TRANSMITTER_CIRCLE,
             destinationDomainId : CCTPForwarder.DOMAIN_ID_CIRCLE_ETHEREUM,
             recipient           : address(r0),
             messageBody         : abi.encode(5)
@@ -308,7 +308,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
 
     function initSourceReceiver() internal override returns (address) {
         return address(
-            new CCTPv2Receiver({
+            new CCTPV2Receiver({
                 _destinationMessenger : bridge.sourceCrossChainMessenger,
                 _sourceDomainId       : destinationDomainId,
                 _sourceAuthority      : _addressToCctpBytes32(destinationAuthority),
@@ -319,7 +319,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
 
     function initDestinationReceiver() internal override returns (address) {
         return address(
-            new CCTPv2Receiver({
+            new CCTPV2Receiver({
                 _destinationMessenger : bridge.destinationCrossChainMessenger,
                 _sourceDomainId       : sourceDomainId,
                 _sourceAuthority      : _addressToCctpBytes32(sourceAuthority),
@@ -329,11 +329,11 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
     }
 
     function initBridgeTesting() internal override returns (Bridge memory) {
-        return CCTPv2BridgeTesting.createCircleBridge(source, destination);
+        return CCTPV2BridgeTesting.createCircleBridge(source, destination);
     }
 
     function queueSourceToDestination(bytes memory message) internal override {
-        CCTPv2Forwarder.sendMessage({
+        CCTPV2Forwarder.sendMessage({
             messageTransmitter  : bridge.sourceCrossChainMessenger,
             destinationDomainId : destinationDomainId,
             recipient           : destinationReceiver,
@@ -342,7 +342,7 @@ contract CircleCCTPv2IntegrationTest is IntegrationBaseTest {
     }
 
     function queueDestinationToSource(bytes memory message) internal override {
-        CCTPv2Forwarder.sendMessage({
+        CCTPV2Forwarder.sendMessage({
             messageTransmitter  : bridge.destinationCrossChainMessenger,
             destinationDomainId : sourceDomainId,
             recipient           : sourceReceiver,
