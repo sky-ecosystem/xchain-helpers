@@ -219,7 +219,7 @@ contract CircleCCTPV2IntegrationTest is IntegrationBaseTest {
     function test_xlayer() public {
         setChain("xlayer", ChainData({
             name: "XLayer",
-            rpcUrl: vm.envString("XLAYER_RPC_URL"),
+            rpcUrl: "https://rpc.xlayer.tech",
             chainId: 196
         }));
 
