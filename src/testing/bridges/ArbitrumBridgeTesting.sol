@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity >=0.8.0;
 
-import { Vm }        from "forge-std/Vm.sol";
+import { Vm } from "forge-std/Vm.sol";
 
 import { Bridge, BridgeType }    from "../Bridge.sol";
 import { Domain, DomainHelpers } from "../Domain.sol";
@@ -43,6 +43,19 @@ contract ArbSysOverride {
 
 }
 
+contract OutboxOverride {
+
+    address public l2ToL1Sender;  // Read by the sky l1 native token bridge validation logic.
+
+    function relay(BridgeLike bridge, address sender, address target, bytes calldata message)
+        external returns (bool success, bytes memory response)
+    {
+        l2ToL1Sender = sender;
+        (success, response) = bridge.executeCall(target, 0, message);  // bridge sets activeOutbox = this
+    }
+
+}
+
 library ArbitrumBridgeTesting {
 
     using DomainHelpers for *;
@@ -52,7 +65,7 @@ library ArbitrumBridgeTesting {
 
     bytes32 private constant MESSAGE_DELIVERED_TOPIC = keccak256("MessageDelivered(uint256,bytes32,address,uint8,address,bytes32,uint256,uint64)");
     bytes32 private constant SEND_TO_L1_TOPIC        = keccak256("SendTxToL1(address,address,bytes)");
-    
+
     function createNativeBridge(Domain memory ethereum, Domain memory arbitrumInstance) internal returns (Bridge memory bridge) {
         (
             address sourceCrossChainMessenger,
@@ -109,19 +122,13 @@ library ArbitrumBridgeTesting {
         BridgeLike underlyingBridge = InboxLike(bridge.sourceCrossChainMessenger).bridge();
         bridge.extraData = abi.encode(address(underlyingBridge));
 
-        // Make this contract a valid outbox
-        address _rollup = underlyingBridge.rollup();
-        vm.store(
-            address(underlyingBridge),
-            bytes32(uint256(8)),
-            bytes32(uint256(uint160(address(this))))
-        );
-        underlyingBridge.setOutbox(address(this), true);
-        vm.store(
-            address(underlyingBridge),
-            bytes32(uint256(8)),
-            bytes32(uint256(uint160(_rollup)))
-        );
+        // Override the outbox to allow for permissionless relaying of messages and a non-zero l2ToL1Sender.
+        OutboxOverride outbox = new OutboxOverride();
+
+        vm.prank(underlyingBridge.rollup());
+        underlyingBridge.setOutbox(address(outbox), true);
+
+        bridge.extraData = abi.encode(address(underlyingBridge), address(outbox));
 
         return bridge;
     }
@@ -159,8 +166,10 @@ library ArbitrumBridgeTesting {
         Vm.Log[] memory logs = bridge.ingestAndFilterLogs(false, SEND_TO_L1_TOPIC, bridge.destinationCrossChainMessenger);
         for (uint256 i = 0; i < logs.length; i++) {
             Vm.Log memory log = logs[i];
-            (, address target, bytes memory message) = abi.decode(log.data, (address, address, bytes));
-            (bool success, bytes memory response) = InboxLike(bridge.sourceCrossChainMessenger).bridge().executeCall(target, 0, message);
+            ( address sender, address target, bytes memory message ) = abi.decode(log.data, ( address, address, bytes ));
+            ( address underlyingBridge, address outbox )             = abi.decode(bridge.extraData, ( address, address ));
+
+            ( bool success, bytes memory response ) = OutboxOverride(outbox).relay(BridgeLike(underlyingBridge), sender, target, message);
             if (!success) {
                 assembly {
                     revert(add(response, 32), mload(response))
