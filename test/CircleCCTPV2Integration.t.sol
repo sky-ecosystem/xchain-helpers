@@ -8,7 +8,8 @@ import "./IntegrationBase.t.sol";
 import { CCTPV2BridgeTesting } from "src/testing/bridges/CCTPV2BridgeTesting.sol";
 
 import { CCTPForwarder } from "src/forwarders/CCTPForwarder.sol";
-import { CCTPReceiver }  from "src/receivers/CCTPReceiver.sol";
+
+// THESE CONTRACTS ARE USED TO TEST THE CCTPV2 BRIDGE AND HAVE NOT BEEN AUDITED.
 
 interface IMessageTransmitterV2 {
 
