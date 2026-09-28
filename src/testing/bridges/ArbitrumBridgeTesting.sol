@@ -45,7 +45,7 @@ contract ArbSysOverride {
 
 contract OutboxOverride {
 
-    address public l2ToL1Sender;  // read by L1 receivers via bridge.activeOutbox()
+    address public l2ToL1Sender;  // Read by the sky l1 native token bridge validation logic.
 
     function relay(BridgeLike bridge, address sender, address target, bytes calldata message)
         external returns (bool success, bytes memory response)
@@ -122,7 +122,7 @@ library ArbitrumBridgeTesting {
         BridgeLike underlyingBridge = InboxLike(bridge.sourceCrossChainMessenger).bridge();
         bridge.extraData = abi.encode(address(underlyingBridge));
 
-        // Make this contract a valid outbox
+        // Override the outbox to allow for permissionless relaying of messages and a non-zero l2ToL1Sender.
         OutboxOverride outbox = new OutboxOverride();
 
         vm.prank(underlyingBridge.rollup());
