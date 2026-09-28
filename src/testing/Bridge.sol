@@ -8,7 +8,8 @@ enum BridgeType {
     ARBITRUM,
     CCTP,
     AMB,
-    LZ
+    LZ,
+    CCTP_V2
 }
 
 struct Bridge {
