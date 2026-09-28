@@ -166,40 +166,18 @@ library CCTPV2BridgeTesting {
      * the "finality threshold executed" (bytes 144-147) to match "min finality threshold" (bytes 140-143).
      */
     function processMessage(bytes memory message) internal view returns (bytes memory processedMessage) {
-        require(message.length >= 148, "CCTPV2BridgeTesting/message-too-short");
+        require(message.length >= 148, "CCTPv2BridgeTesting/message-too-short");
 
         processedMessage = abi.encodePacked(message);
 
         // Add a random nonce
-        bytes32 newNonce = keccak256(
-            abi.encodePacked(
-                msg.sender,
-                block.timestamp,
-                block.number,
-                block.prevrandao,
-                gasleft(),
-                message,
-                address(this)
-            )
-        );
+        bytes32 newNonce = keccak256(abi.encodePacked(gasleft()));
         assembly {
             mstore(add(add(processedMessage, 32), 12), newNonce)
         }
 
-        // Set the finality threshold executed
-        assembly {
-            let base := add(processedMessage, 32)
-
-            let threshold := shr(224, mload(add(base, 140)))  // uint32
-
-            let p := add(base, 144)
-            let word := mload(p)
-
-            let mask := 0x00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-            let kept := and(word, mask)
-
-            mstore(p, or(kept, shl(224, threshold)))
-        }
+        // Set the finality threshold executed at index 144 (4+4+4+32+32+32+32+4)
+        for (uint256 i = 0; i < 4; i++) processedMessage[144 + i] = message[140 + i];
     }
 
 }
