@@ -17,3 +17,23 @@ Most receivers implement a `fallback()` function which after validating that the
 ## E2E Testing Infrastructure
 
 Provides tooling to record messages sent to supported bridges and relay them on the other side simulating a real message going across.
+
+## Audits
+
+Audit reports are hosted on the auditors' public portfolio pages:
+
+| Auditor | Report | Version | Date |
+| --- | --- | --- | --- |
+| ChainSecurity | [Sky xchain-helpers](https://www.chainsecurity.com/security-audit/sky-xchain-helpers/) | v1.2.0 | 2026-08-21 |
+| Cantina | [Sky: Stars LZ Governance](https://cantina.xyz/portfolio/3369b702-f6e2-4c17-b6e1-1ff34953e68a) | - | 2026-08-19 |
+| ChainSecurity | [SparkDAO xchain-helpers](https://www.chainsecurity.com/security-audit/spark-xchain-helpers/) | v1.0.0, v1.1.0 | 2025-10-08 |
+| Cantina | [xchain-helpers; spark-gov-relay](https://cantina.xyz/portfolio/854c4127-0cdc-4712-be6b-60d0c01f1a54) | v1.0.0 | 2024-08-20 |
+
+ChainSecurity reports are cumulative: each portfolio page hosts the latest version of the report, which covers all previously reviewed versions.
+
+### Other reports
+
+The following reports are not available on an auditor portfolio page and are kept in this repository:
+
+- [Cantina v1.1.0](./audits/v110-cantina-audit.pdf)
+- [Cantina v1.2.0](./audits/v120-cantina-audit.pdf)
